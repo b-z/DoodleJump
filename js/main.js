@@ -85,10 +85,10 @@ function init(change)
 	SIZE = HEIGHT / 1024;
 	PLATFORM = [];
 	PLATFORM.push({x:WIDTH/2,y:HEIGHT/8,t:'std',frame:0});
-	PLATFORM.push({x:WIDTH/2-90,y:HEIGHT/8+2,t:'std',frame:0});
-	PLATFORM.push({x:WIDTH/2+90,y:HEIGHT/8+4,t:'std',frame:0});
-	PLATFORM.push({x:WIDTH/2+180,y:HEIGHT/8-2,t:'std',frame:0});
-	PLATFORM.push({x:WIDTH/2-180,y:HEIGHT/8,t:'std',frame:0});
+	PLATFORM.push({x:WIDTH/2-85,y:HEIGHT/8+2,t:'movex',frame:0});
+	PLATFORM.push({x:WIDTH/2+85,y:HEIGHT/8+4,t:'burn',frame:0});
+	PLATFORM.push({x:WIDTH/2+170,y:HEIGHT/8-2,t:'hide',frame:0});
+	PLATFORM.push({x:WIDTH/2-170,y:HEIGHT/8,t:'break',frame:0});
 }
 /*字符串*/
 
@@ -113,7 +113,12 @@ function drawOnePlatForm(p)//上中心点为基准
 {
 	with(p)
 	{
-		ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 32 , x-116*SIZE/2, HEIGHT-y-2/*平台像素的偏移*/, 116*SIZE, 30*SIZE);
+		if (t == 'std') 	ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 30 , x-116*SIZE/2, HEIGHT-y-2/*平台像素的偏移*/, 116*SIZE, 30*SIZE);
+		if (t == 'movex') 	ctx.drawImage(SOURCE_IMAGE, 1, 35, 117, 34 , x-116*SIZE/2, HEIGHT-y-3/*平台像素的偏移*/, 116*SIZE, 34*SIZE);		
+		if (t == 'movey') 	ctx.drawImage(SOURCE_IMAGE, 1, 71, 117, 34 , x-116*SIZE/2, HEIGHT-y-3/*平台像素的偏移*/, 116*SIZE, 34*SIZE);
+		if (t == 'hide') 	ctx.drawImage(SOURCE_IMAGE, 1, 108, 117, 34 , x-116*SIZE/2, HEIGHT-y-2/*平台像素的偏移*/, 116*SIZE, 34*SIZE);
+		if (t == 'break') 	ctx.drawImage(SOURCE_IMAGE, 1, 145, 124, 33 , x-124*SIZE/2, HEIGHT-y-3/*平台像素的偏移*/, 124*SIZE, 33*SIZE);
+		if (t == 'burn') 	ctx.drawImage(SOURCE_IMAGE, 1, 367, 117, 32 , x-116*SIZE/2, HEIGHT-y-2/*平台像素的偏移*/, 116*SIZE, 32*SIZE);
 	}
 }
 
