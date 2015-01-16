@@ -48,6 +48,7 @@ function min(a,b)
 var THEME;
 var BACKGROUND_IMAGE = new Image();
 var SOURCE_IMAGE = new Image();
+var BOTTOM_IMAGE = new Image();
 var DOODLE_IMAGE = {
 	l: new Image(),
 	ls: new Image(),
@@ -72,10 +73,11 @@ var TIMER;
 var CLOCK;
 var FPS;
 var SIZE;//缩放比例 = HEIGHT / 1024
+var THEMES = ['bunny','doodlestein','ghost','ice','jungle','lik','ninja','snow','soccer','space','underwater'];
 
 function init()
 {
-	changeTheme('lik');
+	changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
 	FPS = 60;
 	CLOCK = 0;
 	MOUSEX = WIDTH / 2;
@@ -121,11 +123,17 @@ function drawPlatForms()//1,117,2,32
 	}
 }
 
+function drawBottom()
+{
+	ctx.drawImage(BOTTOM_IMAGE, 0, HEIGHT - SIZE*BOTTOM_IMAGE.height, SIZE*BOTTOM_IMAGE.width, SIZE*BOTTOM_IMAGE.height);
+}
+
 function drawAll()
 {
 	drawBackground();
 	drawPlatForms();
 	drawDoodle();
+	drawBottom();
 }
 
 /*计算位置、移动等*/
@@ -173,6 +181,7 @@ function changeTheme(theme)
 	var sr = 'img/' + THEME +'/';
 	BACKGROUND_IMAGE.src = sr + 'bg.png';
 	SOURCE_IMAGE.src = sr + 'src.png';
+	BOTTOM_IMAGE.src = sr + 'bt.png';
 	with(DOODLE_IMAGE) {
 		l.src = sr + 'l.png';
 		ls.src = sr + 'ls.png';
@@ -186,15 +195,15 @@ function changeTheme(theme)
 /*事件*/
 function addEvent()
 {
-	document.addEventListener('mousemove',function(e)//按下键盘
+	document.addEventListener('mousemove',function(e)
 	{
 		MOUSEX = e.x;
 	});
-	document.addEventListener('mousedown',function(e)//按下键盘
+	document.addEventListener('mousedown',function(e)
 	{
 		DOODLE.status = 'u';
 	});
-	document.addEventListener('mouseup',function(e)//按下键盘
+	document.addEventListener('mouseup',function(e)
 	{
 		DOODLE.status = DOODLE.vx>0?'r':'l';
 	});
