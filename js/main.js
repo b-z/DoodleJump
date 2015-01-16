@@ -67,6 +67,7 @@ var DOODLE = {
 	hidden: false
 };
 var PLATFORM = [];
+var MOUSEX;
 var TIMER;
 var CLOCK;
 var FPS;
@@ -77,6 +78,7 @@ function init()
 	changeTheme('lik');
 	FPS = 60;
 	CLOCK = 0;
+	MOUSEX = WIDTH / 2;
 	SIZE = HEIGHT / 1024;
 	PLATFORM.push({x:WIDTH/2,y:HEIGHT/8,t:'std',frame:0});
 	PLATFORM.push({x:WIDTH/2-90,y:HEIGHT/8+2,t:'std',frame:0});
@@ -107,7 +109,7 @@ function drawOnePlatForm(p)//上中心点为基准
 {
 	with(p)
 	{
-		ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 32 , x-116*SIZE/2, HEIGHT-y-2, 116*SIZE, 30*SIZE);
+		ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 32 , x-116*SIZE/2, HEIGHT-y-2/*偏移*/, 116*SIZE, 30*SIZE);
 	}
 }
 
@@ -127,27 +129,35 @@ function drawAll()
 }
 
 /*计算位置、移动等*/
-function changeDoodlePosition()
+function changeDoodlePosition()//决定使用endless sea小鱼的运动模型...
 {
 	with(DOODLE)
 	{
+		var mx = MOUSEX - (SCREEN_WIDTH-WIDTH)/2;
+		var u1=6;
+		var u2=80;
+		//if (mx<0) mx += x-WIDTH/2;
+		//if (mx>WIDTH) mx += x+WIDTH/2;
+		ax = mx - x - vx/u1;
 		vx += ax;
+		x += vx/u2;
+		while (x<0) x += WIDTH;
+		while (x>WIDTH) x -= WIDTH;
+	
 		vy += ay;
-		x += vx;
 		y += vy;
-		if (x<0) x += WIDTH;
-		if (x>WIDTH) x -= WIDTH;
 
 		var u = HEIGHT/8;
 		if (y<u) {
 			y=2*u-y;
 			vy = -vy;
 		}
+
 		//if (ran(0,1)<0.01||abs(vx)>5) ax*=-1;
 
 		var t = ['l','ls','r','rs','u','us'];
-		if (vx>0) status = 'r';
-		if (vx<0) status = 'l';;
+		if (vx>0&&status!='u'&&status!='us') status = 'r';
+		if (vx<0&&status!='u'&&status!='us') status = 'l';;
 	}
 }
 
@@ -174,46 +184,19 @@ function changeTheme(theme)
 }
 
 /*事件*/
-function pressLeft()
-{
-
-	DOODLE.vx = -5;
-}
-
-function pressRight()
-{
-	DOODLE.vx = 5;
-}
-
-function upLeft()
-{
-	DOODLE.vx = 0;
-}
-
-function upRight()
-{
-	DOODLE.vx = 0;
-}
-
 function addEvent()
 {
-	document.addEventListener('keydown',function(e)//按下键盘
+	document.addEventListener('mousemove',function(e)//按下键盘
 	{
-		console.log(e.keyCode);
-		switch(e.keyCode)
-		{
-		case 37: pressLeft();break;
-		case 39: pressRight();break;
-		}
+		MOUSEX = e.x;
 	});
-	document.addEventListener('keyup',function(e)//按下键盘
+	document.addEventListener('mousedown',function(e)//按下键盘
 	{
-		console.log(e.keyCode);
-		switch(e.keyCode)
-		{
-		case 37: upLeft();break;
-		case 39: upRight();break;
-		}
+		DOODLE.status = 'u';
+	});
+	document.addEventListener('mouseup',function(e)//按下键盘
+	{
+		DOODLE.status = DOODLE.vx>0?'r':'l';
 	});
 }
 
