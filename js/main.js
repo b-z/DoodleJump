@@ -49,6 +49,7 @@ var THEME;
 var BACKGROUND_IMAGE = new Image();
 var SOURCE_IMAGE = new Image();
 var BOTTOM_IMAGE = new Image();
+var HEAD_IMAGE = new Image();
 var DOODLE_IMAGE = {
 	l: new Image(),
 	ls: new Image(),
@@ -75,13 +76,14 @@ var FPS;
 var SIZE;//缩放比例 = HEIGHT / 1024
 var THEMES = ['bunny','doodlestein','ghost','ice','jungle','lik','ninja','snow','soccer','space','underwater'];
 
-function init()
+function init(change)
 {
-	changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
+	if (change) changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
 	FPS = 60;
 	CLOCK = 0;
-	MOUSEX = WIDTH / 2;
+	MOUSEX = SCREEN_WIDTH/2;
 	SIZE = HEIGHT / 1024;
+	PLATFORM = [];
 	PLATFORM.push({x:WIDTH/2,y:HEIGHT/8,t:'std',frame:0});
 	PLATFORM.push({x:WIDTH/2-90,y:HEIGHT/8+2,t:'std',frame:0});
 	PLATFORM.push({x:WIDTH/2+90,y:HEIGHT/8+4,t:'std',frame:0});
@@ -111,7 +113,7 @@ function drawOnePlatForm(p)//上中心点为基准
 {
 	with(p)
 	{
-		ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 32 , x-116*SIZE/2, HEIGHT-y-2/*偏移*/, 116*SIZE, 30*SIZE);
+		ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 32 , x-116*SIZE/2, HEIGHT-y-2/*平台像素的偏移*/, 116*SIZE, 30*SIZE);
 	}
 }
 
@@ -128,12 +130,18 @@ function drawBottom()
 	ctx.drawImage(BOTTOM_IMAGE, 0, HEIGHT - SIZE*BOTTOM_IMAGE.height, SIZE*BOTTOM_IMAGE.width, SIZE*BOTTOM_IMAGE.height);
 }
 
+function drawHead()
+{
+	ctx.drawImage(HEAD_IMAGE, 0,0,640,128,0,-60*SIZE,640*SIZE,128*SIZE);
+}
+
 function drawAll()
 {
 	drawBackground();
 	drawPlatForms();
 	drawDoodle();
 	drawBottom();
+	drawHead();
 }
 
 /*计算位置、移动等*/
@@ -182,6 +190,7 @@ function changeTheme(theme)
 	BACKGROUND_IMAGE.src = sr + 'bg.png';
 	SOURCE_IMAGE.src = sr + 'src.png';
 	BOTTOM_IMAGE.src = sr + 'bt.png';
+	HEAD_IMAGE.src = sr + 'head.png';
 	with(DOODLE_IMAGE) {
 		l.src = sr + 'l.png';
 		ls.src = sr + 'ls.png';
@@ -193,6 +202,19 @@ function changeTheme(theme)
 }
 
 /*事件*/
+window.onresize = function()
+{
+	/*初始化canvas，标准尺寸:640*1024 = 5:8，放在屏幕中间，上下填充满*/
+	SCREEN_WIDTH=document.documentElement.clientWidth;//屏幕宽度高度
+	SCREEN_HEIGHT=document.documentElement.clientHeight;
+	WIDTH = SCREEN_HEIGHT*5/8;
+	HEIGHT = SCREEN_HEIGHT;
+	$('body').html('');
+	$('body').prepend('<canvas id="canv" tabindex="0" style="position:absolute;left:'+(SCREEN_WIDTH-WIDTH)/2+'px;top:0px;" width='+WIDTH+'px height='+HEIGHT+'px>请换个浏览器。。</canvas>');
+	ctx=$('#canv')[0].getContext('2d');
+	init(false);
+}
+
 function addEvent()
 {
 	document.addEventListener('mousemove',function(e)
@@ -221,7 +243,7 @@ function addTimer()
 /*运行游戏*/
 function runNewGame()
 {
-	init();
+	init(true);
 	addEvent();
 	addTimer();
 }
