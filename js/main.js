@@ -45,12 +45,13 @@ function min(a,b)
 }
 
 /*全局变量*/
-var THEME;
-var BACKGROUND_IMAGE = new Image();
-var SOURCE_IMAGE = new Image();
-var BOTTOM_IMAGE = new Image();
-var HEAD_IMAGE = new Image();
-var DOODLE_IMAGE = {
+var THEME;								//string, 主题的文件夹名
+var BACKGROUND_IMAGE = new Image();		//背景图片
+var SOURCE_IMAGE = new Image();			//各个platform、妖怪等的图片
+var BOTTOM_IMAGE = new Image();			//底部装饰图片
+var HEAD_IMAGE = new Image();			//顶部计分图片
+var BULLET_IMAGE = new Image();
+var DOODLE_IMAGE = {					//doodle的图片，分为各个动作
 	l: new Image(),
 	ls: new Image(),
 	r: new Image(),
@@ -58,39 +59,52 @@ var DOODLE_IMAGE = {
 	u: new Image(),
 	us: new Image()
 };
-var DOODLE = {
+var DOODLE = {							//doodle的状态，包括位置、速度、加速度、面部朝向、是否隐藏
 	x: WIDTH/2,
 	y: HEIGHT/2-90*HEIGHT / 1024,
 	vx: 0,
 	vy: 0,
 	ax: 0,
-	ay: -0.29,
-	status: 'l',
+	ay: -0.29*HEIGHT/783,
+	status: 'r',
 	hidden: false
 };
-var PLATFORM = [];
-var MOUSEX;
-var TIMER;
-var CLOCK;
-var FPS;
-var SIZE;//缩放比例 = HEIGHT / 1024
+var PLATFORM = [];						//当前的platform的状态数组，内含多个对象，每个platform的属性包括位置、类型、帧(用于控制动画)
+var BULLET = [];						//Bullet状态数组，对象属性为子弹位置、frame、speed
+var MOUSEX;								//鼠标横坐标
+var MOUSEY;								//鼠标纵坐标
+var PLAT;								//当前doodle会降落的plat序号
+var SCORE;								//分数
+var TIMER;								//定时器
+var CLOCK;								//全局计数器
+var DOODLE_JUMP_CLOCK;					//控制DOODLE下蹲动作的计数器
+var FPS;								//帧率
+var SIZE;								//缩放比例 = HEIGHT / 1024，每个绘制对象的大小都要乘上这个
 var THEMES = ['bunny','doodlestein','ghost','ice','jungle','lik','ninja','snow','soccer','space','underwater'];
+										//各个主题的文件夹名
+var PLATFORM_TYPE = ['std','movex','movey','burn','hide','break'];
 
 function init(change)
 {
 	if (change) changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
 	FPS = 60;
 	CLOCK = 0;
+	SCORE = 0;
+	PLAT = {x:-1000,y:-1000,t:'break',frame:0};
 	MOUSEX = SCREEN_WIDTH/2;
 	SIZE = HEIGHT / 1024;
+	DOODLE_JUMP_CLOCK = 0;
+	DOODLE.ay=-0.29*HEIGHT/783,
 	PLATFORM = [];
 	PLATFORM.push({x:WIDTH/2,y:HEIGHT/8,t:'std',frame:0});
-	PLATFORM.push({x:WIDTH/2-85,y:HEIGHT/8+2,t:'movex',frame:0});
-	PLATFORM.push({x:WIDTH/2+85,y:HEIGHT/8+4,t:'burn',frame:0});
-	PLATFORM.push({x:WIDTH/2+170,y:HEIGHT/8-2,t:'hide',frame:0});
-	PLATFORM.push({x:WIDTH/2-170,y:HEIGHT/8,t:'break',frame:0});
+	PLATFORM.push({x:WIDTH/2-85*HEIGHT/783,y:HEIGHT/8+2*HEIGHT/782,t:'movex',frame:0});
+	PLATFORM.push({x:WIDTH/2+85*HEIGHT/782,y:HEIGHT/8+4*HEIGHT/783,t:'burn',frame:0});
+	PLATFORM.push({x:WIDTH/2+170*HEIGHT/782,y:HEIGHT/8-2*HEIGHT/783,t:'hide',frame:0});
+	PLATFORM.push({x:WIDTH/2-170*HEIGHT/783,y:HEIGHT/8,t:'break',frame:0});
+	PLATFORM.push({x:WIDTH/2-170*HEIGHT/783,y:HEIGHT/8*3,t:'std',frame:0});
+	PLATFORM.push({x:WIDTH/2-170*HEIGHT/783,y:HEIGHT/8*5,t:'std',frame:0});
+	PLATFORM.push({x:WIDTH/2-170*HEIGHT/783,y:HEIGHT/8*7,t:'std',frame:0});
 }
-/*字符串*/
 
 /*绘图函数*/
 //图像裁剪方法:drawImage(image,sourceX,sourceY,sourceWidth,sourceHeight,destX,destY,destWidth, destHeight)
@@ -103,6 +117,13 @@ function drawDoodle()//脚下中心点为基准
 {
 	if (!DOODLE.hidden)
 	{
+		if (DOODLE_JUMP_CLOCK > 0)
+		{
+			if (DOODLE.status.length==1)
+				DOODLE.status+='s';
+		}
+		else
+			DOODLE.status = DOODLE.status[0];
 		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2, HEIGHT-DOODLE.y-120*SIZE, 124*SIZE, 120*SIZE);
 		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2+WIDTH, HEIGHT-DOODLE.y-120*SIZE, 124*SIZE, 120*SIZE);
 		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2-WIDTH, HEIGHT-DOODLE.y-120*SIZE, 124*SIZE, 120*SIZE);
@@ -113,20 +134,39 @@ function drawOnePlatForm(p)//上中心点为基准
 {
 	with(p)
 	{
-		if (t == 'std') 	ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 30 , x-116*SIZE/2, HEIGHT-y-2/*平台像素的偏移*/, 116*SIZE, 30*SIZE);
-		if (t == 'movex') 	ctx.drawImage(SOURCE_IMAGE, 1, 35, 117, 34 , x-116*SIZE/2, HEIGHT-y-3/*平台像素的偏移*/, 116*SIZE, 34*SIZE);		
-		if (t == 'movey') 	ctx.drawImage(SOURCE_IMAGE, 1, 71, 117, 34 , x-116*SIZE/2, HEIGHT-y-3/*平台像素的偏移*/, 116*SIZE, 34*SIZE);
-		if (t == 'hide') 	ctx.drawImage(SOURCE_IMAGE, 1, 108, 117, 34 , x-116*SIZE/2, HEIGHT-y-2/*平台像素的偏移*/, 116*SIZE, 34*SIZE);
-		if (t == 'break') 	ctx.drawImage(SOURCE_IMAGE, 1, 145, 124, 33 , x-124*SIZE/2, HEIGHT-y-3/*平台像素的偏移*/, 124*SIZE, 33*SIZE);
-		if (t == 'burn') 	ctx.drawImage(SOURCE_IMAGE, 1, 367, 117, 32 , x-116*SIZE/2, HEIGHT-y-2/*平台像素的偏移*/, 116*SIZE, 32*SIZE);
+		if (t == 'std') 	ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 30 , x-116*SIZE/2, HEIGHT-y-2*HEIGHT/783/*平台像素的偏移*/, 116*SIZE, 30*SIZE);
+		if (t == 'movex') 	ctx.drawImage(SOURCE_IMAGE, 1, 35, 117, 34 , x-116*SIZE/2, HEIGHT-y-3*HEIGHT/783/*平台像素的偏移*/, 116*SIZE, 34*SIZE);		
+		if (t == 'movey') 	ctx.drawImage(SOURCE_IMAGE, 1, 71, 117, 34 , x-116*SIZE/2, HEIGHT-y-3*HEIGHT/783/*平台像素的偏移*/, 116*SIZE, 34*SIZE);
+		if (t == 'hide') 	ctx.drawImage(SOURCE_IMAGE, 1, 108, 117, 34 , x-116*SIZE/2, HEIGHT-y-2*HEIGHT/782/*平台像素的偏移*/, 116*SIZE, 34*SIZE);
+		if (t == 'break') 	ctx.drawImage(SOURCE_IMAGE, 1, 145, 124, 33 , x-124*SIZE/2, HEIGHT-y-3*HEIGHT/783/*平台像素的偏移*/, 124*SIZE, 33*SIZE);
+		if (t == 'burn') 	ctx.drawImage(SOURCE_IMAGE, 1, 367, 117, 32 , x-116*SIZE/2, HEIGHT-y-2*HEIGHT/783/*平台像素的偏移*/, 116*SIZE, 32*SIZE);
 	}
 }
 
 function drawPlatForms()//1,117,2,32
 {
-	for (p in PLATFORM)
+	for (var i in PLATFORM)
 	{
-		drawOnePlatForm(PLATFORM[p]);
+		if (PLATFORM[i].y>0&&PLATFORM[i].y<HEIGHT+50)
+		drawOnePlatForm(PLATFORM[i]);
+	}
+	for (var i = PLATFORM.length-1; i>=0; i--)
+	{
+		if (PLATFORM[i].y<0)
+			PLATFORM.splice(i,1);
+	}
+}
+
+function drawOneBullet(p)
+{
+	ctx.drawImage(BULLET_IMAGE,0,0,22,22,p.x,HEIGHT-p.y-130*SIZE,22*SIZE,22*SIZE);
+}
+
+function drawBullets()
+{
+	for (var p in BULLET)
+	{
+		drawOneBullet(BULLET[p]);
 	}
 }
 
@@ -140,25 +180,116 @@ function drawHead()
 	ctx.drawImage(HEAD_IMAGE, 0,0,640,128,0,-60*SIZE,640*SIZE,128*SIZE);
 }
 
+function drawScore()
+{
+	ctx.font = "20px sans-serif"
+	ctx.fillText(floor(SCORE),25,25);
+}
+
 function drawAll()
 {
 	drawBackground();
 	drawPlatForms();
 	drawDoodle();
+	drawBullets();
 	drawBottom();
 	drawHead();
+	drawScore();
+	
+	//以下测试用
+	/*
+	ctx.moveTo(0,HEIGHT/2+90*HEIGHT / 1024);
+	ctx.lineTo(10000,HEIGHT/2+90*HEIGHT / 1024);
+	ctx.moveTo(0,HEIGHT/2);
+	ctx.lineTo(10000,HEIGHT/2);
+	ctx.moveTo(0,HEIGHT*7/8);
+	ctx.lineTo(10000,HEIGHT*7/8);
+	ctx.stroke();
+	*/
+	/*
+	var yy = HEIGHT-MOUSEY;
+	if (yy>HEIGHT/2-90*HEIGHT / 1024) yy = HEIGHT/8;
+	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2,y:yy,t:'std'});
+	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2+90*HEIGHT/782,y:yy,t:'std'});
+	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2+180*HEIGHT/782,y:yy,t:'std'});
+	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2+270*HEIGHT/783,y:yy,t:'std'});
+	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2+360*HEIGHT/782,y:yy,t:'std'});
+	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2-90*HEIGHT/782,y:yy,t:'std'});
+	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2-180*HEIGHT/782,y:yy,t:'std'});
+	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2-270*HEIGHT/782,y:yy,t:'std'});
+	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2-360*HEIGHT/783,y:yy,t:'std'});
+	*/
 }
 
 /*计算位置、移动等*/
+function findPlat()
+{
+	var x = DOODLE.x;
+	var y = DOODLE.y;
+	var maxy = -1000;
+	var maxyt = -1;
+	for (var i in PLATFORM)
+	{
+		if (abs(x-PLATFORM[i].x)<60*HEIGHT/783&&PLATFORM[i].y<y&&PLATFORM[i].y>maxy)
+		{
+			maxy=PLATFORM[i].y;
+			maxyt=i;
+		}
+	}
+	PLAT.y = maxy;
+}
+
+function createBullet(x,y)
+{
+	BULLET.push({x:x,y:y,speed:25,frame:0});
+}
+
+function changeBulletPosition()
+{
+	for (var p in BULLET)
+	{
+		BULLET[p].y += BULLET[p].speed;
+		BULLET[p].frame++;
+		BULLET[p].frame%=8; 
+	}
+}
+
+function doodleReflect(posy)
+{
+	DOODLE_JUMP_CLOCK = 12;//跳的状态维持12帧
+	with(DOODLE)
+	{
+		y=posy;
+		vy = 11.55*HEIGHT/783;//*1.732;
+	//	console.log(vy);
+	}
+}
+
+function rollScreen(posy)
+{
+	var u = DOODLE.y - posy;//所有元素都向下移动u个像素
+	DOODLE.y -= u;
+	SCORE += u/(HEIGHT*3/8-90*HEIGHT / 1024)*180
+	if (PLATFORM.length<5)PLATFORM.push({x:WIDTH/2+ran(-170,170),y:HEIGHT,t:PLATFORM_TYPE[ranInt(0,5)],frame:0});
+	for (var p in PLATFORM)
+	{
+		PLATFORM[p].y -= u;
+	}
+	for (var p in BULLET)
+	{
+		BULLET[p].y -= u;
+	}
+}
+
 function changeDoodlePosition()//决定使用endless sea小鱼的运动模型...
 {
 	with(DOODLE)
 	{
 		var mx = MOUSEX - (SCREEN_WIDTH-WIDTH)/2;
-		var u1=6;
+		var u1=6;//u1 u2是两个阻尼值
 		var u2=80;
-		//if (mx<0) mx += x-WIDTH/2;
-		//if (mx>WIDTH) mx += x+WIDTH/2;
+	//	if (mx<0) mx += x;
+	//	if (mx>WIDTH) mx += x - WIDTH;
 		ax = mx - x - vx/u1;
 		vx += ax;
 		x += vx/u2;
@@ -167,24 +298,28 @@ function changeDoodlePosition()//决定使用endless sea小鱼的运动模型...
 	
 		vy += ay;
 		y += vy;
-
-		var u = HEIGHT/8;
-		if (y<u) {
-			y=2*u-y;
-			vy = -vy;
+		var u = PLAT.y;
+		if (y<u) 
+		{			
+			doodleReflect(u);
 		}
 
-		//if (ran(0,1)<0.01||abs(vx)>5) ax*=-1;
+		var v = HEIGHT/2-90*HEIGHT/1024;
+		if (y>v)
+		{
+			rollScreen(v);
+		}
 
-		var t = ['l','ls','r','rs','u','us'];
-		if (vx>0&&status!='u'&&status!='us') status = 'r';
-		if (vx<0&&status!='u'&&status!='us') status = 'l';;
+		//var t = ['l','ls','r','rs','u','us'];
+		if (vx>10&&status!='u'&&status!='us') status = 'r';
+		if (vx<-10&&status!='u'&&status!='us') status = 'l';
 	}
 }
 
 function computeNextFrame()
 {
 	changeDoodlePosition();
+	changeBulletPosition();
 }
 
 /*主题相关*/
@@ -196,6 +331,7 @@ function changeTheme(theme)
 	SOURCE_IMAGE.src = sr + 'src.png';
 	BOTTOM_IMAGE.src = sr + 'bt.png';
 	HEAD_IMAGE.src = sr + 'head.png';
+	BULLET_IMAGE.src = 'img/bullet.png';
 	with(DOODLE_IMAGE) {
 		l.src = sr + 'l.png';
 		ls.src = sr + 'ls.png';
@@ -225,10 +361,16 @@ function addEvent()
 	document.addEventListener('mousemove',function(e)
 	{
 		MOUSEX = e.x;
+		MOUSEY = e.y;
+		//if (HEIGHT-e.y<HEIGHT/2-90*HEIGHT / 1024) plat = HEIGHT - e.y;
+		//else plat = HEIGHT/8;
 	});
 	document.addEventListener('mousedown',function(e)
 	{
 		DOODLE.status = 'u';
+		createBullet(DOODLE.x,DOODLE.y);
+		//DOODLE.y = HEIGHT-e.y;
+		//DOODLE.vy = 0;
 	});
 	document.addEventListener('mouseup',function(e)
 	{
@@ -240,8 +382,16 @@ function addTimer()
 {
 	TIMER = setInterval(function(){
 		CLOCK ++;
+		if (DOODLE_JUMP_CLOCK > 0) 
+		{
+			DOODLE_JUMP_CLOCK --;
+		}
 		drawAll();
-		if (CLOCK % 1 == 0) computeNextFrame();
+		computeNextFrame();
+		findPlat();
+
+//		if (CLOCK % 60 == 0) 	PLATFORM.push({x:WIDTH/2+ran(-170,170),y:HEIGHT,t:PLATFORM_TYPE[ranInt(0,5)],frame:0});
+
 	}, 1000/FPS);
 }
 
