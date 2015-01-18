@@ -112,7 +112,7 @@ function init(change)
 	PLATFORM.push(createPlatform(WIDTH/2-85*HEIGHT/703,HEIGHT/8+2*HEIGHT/782,'movey',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2+85*HEIGHT/782,HEIGHT/8+4*HEIGHT/703,'burn',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2+170*HEIGHT/782,HEIGHT/8-2*HEIGHT/703,'hide',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8,'break',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2+-170*HEIGHT/703,HEIGHT/8,'break',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*3,'std',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*5,'std',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*7,'std',0,0));
