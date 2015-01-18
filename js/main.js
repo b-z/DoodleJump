@@ -1,6 +1,6 @@
 /*初始化canvas，标准尺寸:640*1024 = 5:8，放在屏幕中间，上下填充满*/
 var SCREEN_WIDTH=document.documentElement.clientWidth;//屏幕宽度高度
-var SCREEN_HEIGHT=document.documentElement.clientHeight;
+var SCREEN_HEIGHT=703;//document.documentElement.clientHeight;
 var WIDTH = SCREEN_HEIGHT*5/8;
 var HEIGHT = SCREEN_HEIGHT;
 $('body').prepend('<canvas id="canv" tabindex="0" style="position:absolute;left:'+(SCREEN_WIDTH-WIDTH)/2+'px;top:0px;" width='+WIDTH+'px height='+HEIGHT+'px>请换个浏览器。。</canvas>');
@@ -88,12 +88,14 @@ var CLOCK;								//全局计数器
 var DOODLE_JUMP_CLOCK;					//控制DOODLE下蹲动作的计数器
 var FPS;								//帧率
 var SIZE;								//缩放比例 = HEIGHT / 1024，每个绘制对象的大小都要乘上这个
+var IMAGE_LOADED;
 var THEMES = ['bunny','doodlestein','ghost','ice','jungle','lik','ninja','snow','soccer','space','underwater'];
 										//各个主题的文件夹名
 var PLATFORM_TYPE = ['std','movex','movey','burn','hide','break'];
 
 function init(change)
 {
+	IMAGE_LOADED = 0;
 	if (change) changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
 	FPS = 60;
 	CLOCK = 0;
@@ -365,6 +367,13 @@ function changeTheme(theme)
 		u.src = sr + 'u.png';
 		us.src = sr + 'us.png';
 	}
+	var count = 11;
+	IMAGE_LOADED = 0;
+	BACKGROUND_IMAGE.onload=SOURCE_IMAGE.onload=BOTTOM_IMAGE.onload=HEAD_IMAGE.onload=BULLET_IMAGE.onload=DOODLE_IMAGE.l.onload=DOODLE_IMAGE.ls.onload=DOODLE_IMAGE.u.onload=DOODLE_IMAGE.us.onload=DOODLE_IMAGE.r.onload=DOODLE_IMAGE.rs.onload=function(){
+		IMAGE_LOADED++;
+		if (IMAGE_LOADED == count)
+			runNewGame();
+	}
 }
 
 /*事件*/
@@ -423,9 +432,8 @@ function addTimer()
 /*运行游戏*/
 function runNewGame()
 {
-	init(true);
 	addEvent();
 	addTimer();
 }
 
-runNewGame();
+init(true);
