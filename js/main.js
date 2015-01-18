@@ -132,9 +132,10 @@ function drawDoodle()//脚下中心点为基准
 		}
 		else
 			DOODLE.status = DOODLE.status[0];
-		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2, HEIGHT-DOODLE.y-120*SIZE, 124*SIZE, 120*SIZE);
-		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2+WIDTH, HEIGHT-DOODLE.y-120*SIZE, 124*SIZE, 120*SIZE);
-		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2-WIDTH, HEIGHT-DOODLE.y-120*SIZE, 124*SIZE, 120*SIZE);
+		var offset = DOODLE.status.length==1?0:8*SIZE;
+		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2, HEIGHT-DOODLE.y-120*SIZE-offset, 124*SIZE, 120*SIZE);
+		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2+WIDTH, HEIGHT-DOODLE.y-120*SIZE-offset, 124*SIZE, 120*SIZE);
+		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2-WIDTH, HEIGHT-DOODLE.y-120*SIZE-offset, 124*SIZE, 120*SIZE);
 	}
 }
 
