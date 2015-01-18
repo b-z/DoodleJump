@@ -1,6 +1,6 @@
 /*初始化canvas，标准尺寸:640*1024 = 5:8，放在屏幕中间，上下填充满*/
 var SCREEN_WIDTH=document.documentElement.clientWidth;//屏幕宽度高度
-var SCREEN_HEIGHT=703;//document.documentElement.clientHeight;
+var SCREEN_HEIGHT=document.documentElement.clientHeight;
 var WIDTH = SCREEN_HEIGHT*5/8;
 var HEIGHT = SCREEN_HEIGHT;
 $('body').prepend('<canvas id="canv" tabindex="0" style="position:absolute;left:'+(SCREEN_WIDTH-WIDTH)/2+'px;top:0px;" width='+WIDTH+'px height='+HEIGHT+'px>请换个浏览器。。</canvas>');
@@ -220,7 +220,7 @@ function drawAll()
 	drawScore();
 	
 	//以下测试用
-	
+	/*
 	ctx.moveTo(0,HEIGHT/2+90*HEIGHT / 1024);
 	ctx.lineTo(10000,HEIGHT/2+90*HEIGHT / 1024);
 	ctx.moveTo(0,HEIGHT/2);
@@ -228,7 +228,7 @@ function drawAll()
 	ctx.moveTo(0,HEIGHT*7/8);
 	ctx.lineTo(10000,HEIGHT*7/8);
 	ctx.stroke();
-	
+	*/
 	/*
 	var yy = HEIGHT-MOUSEY;
 	if (yy>HEIGHT/2-90*HEIGHT / 1024) yy = HEIGHT/8;
@@ -298,7 +298,7 @@ function rollScreen(posy)
 	var u = DOODLE.y - posy;//所有元素都向下移动u个像素
 	DOODLE.y -= u;
 	SCORE += u/(HEIGHT*3/8-90*HEIGHT / 1024)*180
-	//if (PLATFORM.length<5)
+	if (PLATFORM.length<5)
 		PLATFORM.push(createPlatform(WIDTH/2+ran(-175,175),HEIGHT,PLATFORM_TYPE[ranInt(0,5)],ran(80,260),0));
 	for (var p in PLATFORM)
 	{
