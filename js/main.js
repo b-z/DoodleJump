@@ -95,6 +95,7 @@ var PLATFORM_TYPE = ['std','movex','movey','burn','hide','break'];
 
 function init(change)
 {
+	ctx.fillText('loading...',0,0);
 	IMAGE_LOADED = 0;
 	if (change) changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
 	FPS = 60;
