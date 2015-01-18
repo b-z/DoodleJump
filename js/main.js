@@ -215,7 +215,7 @@ function drawAll()
 	drawScore();
 	
 	//以下测试用
-	/*
+	
 	ctx.moveTo(0,HEIGHT/2+90*HEIGHT / 1024);
 	ctx.lineTo(10000,HEIGHT/2+90*HEIGHT / 1024);
 	ctx.moveTo(0,HEIGHT/2);
@@ -223,7 +223,7 @@ function drawAll()
 	ctx.moveTo(0,HEIGHT*7/8);
 	ctx.lineTo(10000,HEIGHT*7/8);
 	ctx.stroke();
-	*/
+	
 	/*
 	var yy = HEIGHT-MOUSEY;
 	if (yy>HEIGHT/2-90*HEIGHT / 1024) yy = HEIGHT/8;
