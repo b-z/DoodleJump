@@ -102,10 +102,10 @@ function init(change)
 	MOUSEX = SCREEN_WIDTH/2;
 	SIZE = HEIGHT / 1024;
 	DOODLE_JUMP_CLOCK = 0;
-	DOODLE.ay=-0.421*HEIGHT/703,
+	DOODLE.ay=-((HEIGHT*3/8-90*HEIGHT/1024)/((3600/46/2)*(3600/46/2)/2)),
 	PLATFORM = [];
 	PLATFORM.push(createPlatform(WIDTH/2,HEIGHT/8,'std',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2-85*HEIGHT/703,HEIGHT/8+2*HEIGHT/782,'movex',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-85*HEIGHT/703,HEIGHT/8+2*HEIGHT/782,'movey',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2+85*HEIGHT/782,HEIGHT/8+4*HEIGHT/703,'burn',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2+170*HEIGHT/782,HEIGHT/8-2*HEIGHT/703,'hide',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/703,HEIGHT/8,'break',0,0));
@@ -132,10 +132,10 @@ function drawDoodle()//脚下中心点为基准
 		}
 		else
 			DOODLE.status = DOODLE.status[0];
-		var offset = DOODLE.status.length==1?0:8*SIZE;
-		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2, HEIGHT-DOODLE.y-120*SIZE-offset, 124*SIZE, 120*SIZE);
-		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2+WIDTH, HEIGHT-DOODLE.y-120*SIZE-offset, 124*SIZE, 120*SIZE);
-		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2-WIDTH, HEIGHT-DOODLE.y-120*SIZE-offset, 124*SIZE, 120*SIZE);
+		var offset = DOODLE.status.length==1?8*SIZE:0;
+		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2, HEIGHT-DOODLE.y-120*SIZE+offset, 124*SIZE, 120*SIZE);
+		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2+WIDTH, HEIGHT-DOODLE.y-120*SIZE+offset, 124*SIZE, 120*SIZE);
+		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2-WIDTH, HEIGHT-DOODLE.y-120*SIZE+offset, 124*SIZE, 120*SIZE);
 	}
 }
 
@@ -143,7 +143,7 @@ function drawOnePlatForm(p)//上中心点为基准
 {
 	with(p)
 	{
-		if (speed!=0)
+		if (t=='movex')
 			x = WIDTH/2 + 200*HEIGHT/703*cos_gizagiza(CLOCK/speed);
 		if (t == 'std') 	ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 30 , x-116*SIZE/2, HEIGHT-y-2*HEIGHT/703/*平台像素的偏移*/, 116*SIZE, 30*SIZE);
 		if (t == 'movex') 	ctx.drawImage(SOURCE_IMAGE, 1, 35, 117, 34 , x-116*SIZE/2, HEIGHT-y-3*HEIGHT/703/*平台像素的偏移*/, 116*SIZE, 34*SIZE);		
@@ -284,7 +284,7 @@ function doodleReflect(posy)
 	with(DOODLE)
 	{
 		y=posy;
-		vy = sqrt((HEIGHT*3/8-90*HEIGHT/1024)*2*(-DOODLE.ay))*HEIGHT/703;//*1.732;
+		vy = sqrt((HEIGHT*3/8-90*HEIGHT/1024)*2*(-DOODLE.ay));//*1.732;
 	//	console.log(vy);
 	}
 }
@@ -294,8 +294,8 @@ function rollScreen(posy)
 	var u = DOODLE.y - posy;//所有元素都向下移动u个像素
 	DOODLE.y -= u;
 	SCORE += u/(HEIGHT*3/8-90*HEIGHT / 1024)*180
-	if (PLATFORM.length<5)
-		PLATFORM.push(createPlatform(WIDTH/2+ran(-175,175),HEIGHT,PLATFORM_TYPE[ranInt(0,5)],ran(0,1)<0.8?ran(80,260):0,0));
+	//if (PLATFORM.length<5)
+		PLATFORM.push(createPlatform(WIDTH/2+ran(-175,175),HEIGHT,PLATFORM_TYPE[ranInt(0,5)],ran(80,260),0));
 	for (var p in PLATFORM)
 	{
 		PLATFORM[p].y -= u;
