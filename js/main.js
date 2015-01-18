@@ -44,6 +44,14 @@ function min(a,b)
 	return a>b?b:a;
 }
 
+function cos_gizagiza(i)
+{
+	if (i%2<1)
+		return 2*(i%1)-1;
+	else
+		return 1-2*(i%1);
+}
+
 /*全局变量*/
 var THEME;								//string, 主题的文件夹名
 var BACKGROUND_IMAGE = new Image();		//背景图片
@@ -65,7 +73,7 @@ var DOODLE = {							//doodle的状态，包括位置、速度、加速度、面
 	vx: 0,
 	vy: 0,
 	ax: 0,
-	ay: -0.29*HEIGHT/783,
+	ay: 0,
 	status: 'r',
 	hidden: false
 };
@@ -90,20 +98,20 @@ function init(change)
 	FPS = 60;
 	CLOCK = 0;
 	SCORE = 0;
-	PLAT = {x:-1000,y:-1000,t:'break',frame:0};
+	PLAT = createPlatform(-1000,-1000,'break',0,0);
 	MOUSEX = SCREEN_WIDTH/2;
 	SIZE = HEIGHT / 1024;
 	DOODLE_JUMP_CLOCK = 0;
-	DOODLE.ay=-0.29*HEIGHT/783,
+	DOODLE.ay=-0.421*HEIGHT/783,
 	PLATFORM = [];
-	PLATFORM.push({x:WIDTH/2,y:HEIGHT/8,t:'std',frame:0});
-	PLATFORM.push({x:WIDTH/2-85*HEIGHT/783,y:HEIGHT/8+2*HEIGHT/782,t:'movex',frame:0});
-	PLATFORM.push({x:WIDTH/2+85*HEIGHT/782,y:HEIGHT/8+4*HEIGHT/783,t:'burn',frame:0});
-	PLATFORM.push({x:WIDTH/2+170*HEIGHT/782,y:HEIGHT/8-2*HEIGHT/783,t:'hide',frame:0});
-	PLATFORM.push({x:WIDTH/2-170*HEIGHT/783,y:HEIGHT/8,t:'break',frame:0});
-	PLATFORM.push({x:WIDTH/2-170*HEIGHT/783,y:HEIGHT/8*3,t:'std',frame:0});
-	PLATFORM.push({x:WIDTH/2-170*HEIGHT/783,y:HEIGHT/8*5,t:'std',frame:0});
-	PLATFORM.push({x:WIDTH/2-170*HEIGHT/783,y:HEIGHT/8*7,t:'std',frame:0});
+	PLATFORM.push(createPlatform(WIDTH/2,HEIGHT/8,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-85*HEIGHT/783,HEIGHT/8+2*HEIGHT/782,'movex',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2+85*HEIGHT/782,HEIGHT/8+4*HEIGHT/783,'burn',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2+170*HEIGHT/782,HEIGHT/8-2*HEIGHT/783,'hide',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/783,HEIGHT/8,'break',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/783,HEIGHT/8*3,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/783,HEIGHT/8*5,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/783,HEIGHT/8*7,'std',0,0));
 }
 
 /*绘图函数*/
@@ -134,6 +142,8 @@ function drawOnePlatForm(p)//上中心点为基准
 {
 	with(p)
 	{
+		if (speed!=0)
+			x = WIDTH/2 + 200*HEIGHT/783*cos_gizagiza(CLOCK/speed);
 		if (t == 'std') 	ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 30 , x-116*SIZE/2, HEIGHT-y-2*HEIGHT/783/*平台像素的偏移*/, 116*SIZE, 30*SIZE);
 		if (t == 'movex') 	ctx.drawImage(SOURCE_IMAGE, 1, 35, 117, 34 , x-116*SIZE/2, HEIGHT-y-3*HEIGHT/783/*平台像素的偏移*/, 116*SIZE, 34*SIZE);		
 		if (t == 'movey') 	ctx.drawImage(SOURCE_IMAGE, 1, 71, 117, 34 , x-116*SIZE/2, HEIGHT-y-3*HEIGHT/783/*平台像素的偏移*/, 116*SIZE, 34*SIZE);
@@ -180,10 +190,18 @@ function drawHead()
 	ctx.drawImage(HEAD_IMAGE, 0,0,640,128,0,-60*SIZE,640*SIZE,128*SIZE);
 }
 
-function drawScore()
+function drawScore()//     38 84
 {
-	ctx.font = "20px sans-serif"
-	ctx.fillText(floor(SCORE),25,25);
+	var u = [640, 660, 694, 723, 749, 781, 812, 842, 872, 898, 930];
+	var t = floor(SCORE) + '';
+	var offset = 0;
+	for (i in t)
+	{
+		var s = t[i]-'0';
+		if (s==0) s+=10;
+		ctx.drawImage(HEAD_IMAGE,u[s-1],38,u[s]-u[s-1],46,(30+offset/1.3)*SIZE,5*SIZE,(u[s]-u[s-1])/1.3*SIZE,46/1.3*SIZE);
+		offset += u[s]-u[s-1];
+	}
 }
 
 function drawAll()
@@ -226,7 +244,7 @@ function findPlat()
 {
 	var x = DOODLE.x;
 	var y = DOODLE.y;
-	var maxy = -1000;
+	var maxy = -0;
 	var maxyt = -1;
 	for (var i in PLATFORM)
 	{
@@ -237,6 +255,11 @@ function findPlat()
 		}
 	}
 	PLAT.y = maxy;
+}
+
+function createPlatform(x,y,type,speed,frame)
+{
+	return {x:x,y:y,t:type,speed:speed,f:frame};
 }
 
 function createBullet(x,y)
@@ -260,7 +283,7 @@ function doodleReflect(posy)
 	with(DOODLE)
 	{
 		y=posy;
-		vy = 11.55*HEIGHT/783;//*1.732;
+		vy = sqrt((HEIGHT*3/8-90*HEIGHT/1024)*2*(-DOODLE.ay))*HEIGHT/783;//*1.732;
 	//	console.log(vy);
 	}
 }
@@ -270,7 +293,8 @@ function rollScreen(posy)
 	var u = DOODLE.y - posy;//所有元素都向下移动u个像素
 	DOODLE.y -= u;
 	SCORE += u/(HEIGHT*3/8-90*HEIGHT / 1024)*180
-	if (PLATFORM.length<5)PLATFORM.push({x:WIDTH/2+ran(-170,170),y:HEIGHT,t:PLATFORM_TYPE[ranInt(0,5)],frame:0});
+	if (PLATFORM.length<5)
+		PLATFORM.push(createPlatform(WIDTH/2+ran(-175,175),HEIGHT,PLATFORM_TYPE[ranInt(0,5)],ran(0,1)<0.8?ran(80,260):0,0));
 	for (var p in PLATFORM)
 	{
 		PLATFORM[p].y -= u;
