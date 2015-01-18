@@ -102,16 +102,16 @@ function init(change)
 	MOUSEX = SCREEN_WIDTH/2;
 	SIZE = HEIGHT / 1024;
 	DOODLE_JUMP_CLOCK = 0;
-	DOODLE.ay=-0.421*HEIGHT/783,
+	DOODLE.ay=-0.421*HEIGHT/703,
 	PLATFORM = [];
 	PLATFORM.push(createPlatform(WIDTH/2,HEIGHT/8,'std',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2-85*HEIGHT/783,HEIGHT/8+2*HEIGHT/782,'movex',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2+85*HEIGHT/782,HEIGHT/8+4*HEIGHT/783,'burn',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2+170*HEIGHT/782,HEIGHT/8-2*HEIGHT/783,'hide',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/783,HEIGHT/8,'break',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/783,HEIGHT/8*3,'std',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/783,HEIGHT/8*5,'std',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/783,HEIGHT/8*7,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-85*HEIGHT/703,HEIGHT/8+2*HEIGHT/782,'movex',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2+85*HEIGHT/782,HEIGHT/8+4*HEIGHT/703,'burn',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2+170*HEIGHT/782,HEIGHT/8-2*HEIGHT/703,'hide',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/703,HEIGHT/8,'break',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/703,HEIGHT/8*3,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/703,HEIGHT/8*5,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/703,HEIGHT/8*7,'std',0,0));
 }
 
 /*绘图函数*/
@@ -143,13 +143,13 @@ function drawOnePlatForm(p)//上中心点为基准
 	with(p)
 	{
 		if (speed!=0)
-			x = WIDTH/2 + 200*HEIGHT/783*cos_gizagiza(CLOCK/speed);
-		if (t == 'std') 	ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 30 , x-116*SIZE/2, HEIGHT-y-2*HEIGHT/783/*平台像素的偏移*/, 116*SIZE, 30*SIZE);
-		if (t == 'movex') 	ctx.drawImage(SOURCE_IMAGE, 1, 35, 117, 34 , x-116*SIZE/2, HEIGHT-y-3*HEIGHT/783/*平台像素的偏移*/, 116*SIZE, 34*SIZE);		
-		if (t == 'movey') 	ctx.drawImage(SOURCE_IMAGE, 1, 71, 117, 34 , x-116*SIZE/2, HEIGHT-y-3*HEIGHT/783/*平台像素的偏移*/, 116*SIZE, 34*SIZE);
+			x = WIDTH/2 + 200*HEIGHT/703*cos_gizagiza(CLOCK/speed);
+		if (t == 'std') 	ctx.drawImage(SOURCE_IMAGE, 1, 2, 117, 30 , x-116*SIZE/2, HEIGHT-y-2*HEIGHT/703/*平台像素的偏移*/, 116*SIZE, 30*SIZE);
+		if (t == 'movex') 	ctx.drawImage(SOURCE_IMAGE, 1, 35, 117, 34 , x-116*SIZE/2, HEIGHT-y-3*HEIGHT/703/*平台像素的偏移*/, 116*SIZE, 34*SIZE);		
+		if (t == 'movey') 	ctx.drawImage(SOURCE_IMAGE, 1, 71, 117, 34 , x-116*SIZE/2, HEIGHT-y-3*HEIGHT/703/*平台像素的偏移*/, 116*SIZE, 34*SIZE);
 		if (t == 'hide') 	ctx.drawImage(SOURCE_IMAGE, 1, 108, 117, 34 , x-116*SIZE/2, HEIGHT-y-2*HEIGHT/782/*平台像素的偏移*/, 116*SIZE, 34*SIZE);
-		if (t == 'break') 	ctx.drawImage(SOURCE_IMAGE, 1, 145, 124, 33 , x-124*SIZE/2, HEIGHT-y-3*HEIGHT/783/*平台像素的偏移*/, 124*SIZE, 33*SIZE);
-		if (t == 'burn') 	ctx.drawImage(SOURCE_IMAGE, 1, 367, 117, 32 , x-116*SIZE/2, HEIGHT-y-2*HEIGHT/783/*平台像素的偏移*/, 116*SIZE, 32*SIZE);
+		if (t == 'break') 	ctx.drawImage(SOURCE_IMAGE, 1, 145, 124, 33 , x-124*SIZE/2, HEIGHT-y-3*HEIGHT/703/*平台像素的偏移*/, 124*SIZE, 33*SIZE);
+		if (t == 'burn') 	ctx.drawImage(SOURCE_IMAGE, 1, 367, 117, 32 , x-116*SIZE/2, HEIGHT-y-2*HEIGHT/703/*平台像素的偏移*/, 116*SIZE, 32*SIZE);
 	}
 }
 
@@ -230,12 +230,12 @@ function drawAll()
 	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2,y:yy,t:'std'});
 	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2+90*HEIGHT/782,y:yy,t:'std'});
 	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2+180*HEIGHT/782,y:yy,t:'std'});
-	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2+270*HEIGHT/783,y:yy,t:'std'});
+	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2+270*HEIGHT/703,y:yy,t:'std'});
 	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2+360*HEIGHT/782,y:yy,t:'std'});
 	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2-90*HEIGHT/782,y:yy,t:'std'});
 	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2-180*HEIGHT/782,y:yy,t:'std'});
 	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2-270*HEIGHT/782,y:yy,t:'std'});
-	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2-360*HEIGHT/783,y:yy,t:'std'});
+	drawOnePlatForm({x:MOUSEX-(SCREEN_WIDTH-WIDTH)/2-360*HEIGHT/703,y:yy,t:'std'});
 	*/
 }
 
@@ -248,7 +248,7 @@ function findPlat()
 	var maxyt = -1;
 	for (var i in PLATFORM)
 	{
-		if (abs(x-PLATFORM[i].x)<60*HEIGHT/783&&PLATFORM[i].y<y&&PLATFORM[i].y>maxy)
+		if (abs(x-PLATFORM[i].x)<60*HEIGHT/703&&PLATFORM[i].y<y&&PLATFORM[i].y>maxy)
 		{
 			maxy=PLATFORM[i].y;
 			maxyt=i;
@@ -283,7 +283,7 @@ function doodleReflect(posy)
 	with(DOODLE)
 	{
 		y=posy;
-		vy = sqrt((HEIGHT*3/8-90*HEIGHT/1024)*2*(-DOODLE.ay))*HEIGHT/783;//*1.732;
+		vy = sqrt((HEIGHT*3/8-90*HEIGHT/1024)*2*(-DOODLE.ay))*HEIGHT/703;//*1.732;
 	//	console.log(vy);
 	}
 }
