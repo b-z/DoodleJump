@@ -95,7 +95,8 @@ var PLATFORM_TYPE = ['std','movex','movey','burn','hide','break'];
 
 function init(change)
 {
-	ctx.fillText('loading...',100,100);
+	ctx.font = "20px sans-serif";
+	ctx.fillText('loading, please wait...',100,HEIGHT/2);
 	IMAGE_LOADED = 0;
 	if (change) changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
 	FPS = 60;
