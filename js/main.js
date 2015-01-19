@@ -314,7 +314,7 @@ function rollScreen(posy)
 	DOODLE.y -= u;
 	TITLE_Y += u;
 	SCORE += u/(HEIGHT*3/8-90*HEIGHT / 1024)*180
-	if (PLATFORM.length<5)
+	//if (PLATFORM.length<5)
 		PLATFORM.push(createPlatform(WIDTH/2+ran(-229,229)*SIZE,HEIGHT,PLATFORM_TYPE[ranInt(0,5)],ran(80,260),0));
 	for (var p in PLATFORM)
 	{
