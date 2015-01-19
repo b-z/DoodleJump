@@ -97,8 +97,10 @@ var PLATFORM_TYPE = ['std','movex','movey','burn','hide','break'];
 
 function init(changetheme)
 {
-	LOADING_IMAGE.src = 'img/loading.png';
-	ctx.drawImage(LOADING_IMAGE,WIDTH/2-LOADING_IMAGE.width/2,HEIGHT/2-LOADING_IMAGE.height/2);
+//	LOADING_IMAGE.src = 'img/loading.png';
+//	ctx.drawImage(LOADING_IMAGE,WIDTH/2-LOADING_IMAGE.width/2,HEIGHT/2-LOADING_IMAGE.height/2);
+	ctx.font = '20px sans-serif';
+	ctx.fillText('loading, please wait...',100,HEIGHT/2);
 	IMAGE_LOADED = 0;
 	if (changetheme) changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
 	FPS = 60;
