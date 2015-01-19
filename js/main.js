@@ -335,11 +335,11 @@ function changeDoodlePosition()//决定使用endless sea小鱼的运动模型...
 		var u2=80;
 	//	if (mx<0) mx += x;
 	//	if (mx>WIDTH) mx += x - WIDTH;
-		//ax = mx - x - vx/u1;
-		//vx += ax;
-		//x += vx/u2;
-		vx = (mx-WIDTH/2)/15*SIZE;
-		x += vx;
+		ax = mx - x - vx/u1;
+		vx += ax;
+		x += vx/u2;
+		//vx = (mx-WIDTH/2)/15*SIZE;
+		//x += vx;
 		
 		while (x<0) x += WIDTH;
 		while (x>WIDTH) x -= WIDTH;
