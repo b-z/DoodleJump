@@ -1,3 +1,5 @@
+// 这写的都是啥=。=
+
 /*初始化canvas，标准尺寸:640*1024 = 5:8，放在屏幕中间，上下填充满*/
 var SCREEN_WIDTH=document.documentElement.clientWidth;//屏幕宽度高度
 var SCREEN_HEIGHT=document.documentElement.clientHeight;
@@ -69,26 +71,17 @@ var DOODLE_IMAGE = {					//doodle的图片，分为各个动作
 	u: new Image(),
 	us: new Image()
 };
-var DOODLE = {							//doodle的状态，包括位置、速度、加速度、面部朝向、是否隐藏
-	x: WIDTH/2,
-	y: HEIGHT/2-90*HEIGHT / 1024,
-	vx: 0,
-	vy: 0,
-	ax: 0,
-	ay: 0,
-	status: 'r',
-	hidden: false,
-	died: false
-};
+var DOODLE;
 var TITLE_Y;
 var PLATFORM = [];						//当前的platform的状态数组，内含多个对象，每个platform的属性包括位置、类型、帧(用于控制动画)
 var PLATFORM_ID;
+var NEXT_DISTANCE;
 var BULLET = [];						//Bullet状态数组，对象属性为子弹位置、frame、speed
 var MOUSEX;								//鼠标横坐标
 var MOUSEY;								//鼠标纵坐标
 var PLAT;								//当前doodle会降落的plat序号
 var SCORE;								//分数
-var TIMER;								//定时器
+var TIMER = 0;								//定时器
 var CLOCK;								//全局计数器
 var FPS;								//帧率
 var SIZE;								//缩放比例 = HEIGHT / 1024，每个绘制对象的大小都要乘上这个
@@ -101,6 +94,7 @@ var SOUND_NAME = ['jump','lomise','explodingplatform','explodingplatform2','puca
 
 function init(changetheme)
 {
+	console.log('init', changetheme);
 //	LOADING_IMAGE.src = 'img/loading.png';
 //	ctx.drawImage(LOADING_IMAGE,WIDTH/2-LOADING_IMAGE.width/2,HEIGHT/2-LOADING_IMAGE.height/2);
 	ctx.font = '20px sans-serif';
@@ -109,23 +103,39 @@ function init(changetheme)
 	IMAGE_LOADED = 0;
 	if (changetheme) changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
 	FPS = 60;
+	if (TIMER) clearInterval(TIMER);
+	TIMER = 0;
 	CLOCK = 0;
 	SCORE = 0;
 	TITLE_Y = 0;
 	PLATFORM_ID = -1;
+	NEXT_DISTANCE = getNextDistance();
 	PLAT = createPlatform(-1000,-1000,'break',0,0);
 	MOUSEX = SCREEN_WIDTH/2;
 	SIZE = HEIGHT / 1024;
+	DOODLE = {							//doodle的状态，包括位置、速度、加速度、面部朝向、是否隐藏
+		x: WIDTH/2,
+		y: HEIGHT/2-90*HEIGHT / 1024,
+		vx: 0,
+		vy: 0,
+		ax: 0,
+		ay: 0,
+		status: 'r',
+		hidden: false,
+		died: false
+	};
 	DOODLE.ay=-((HEIGHT*3/8-90*HEIGHT/1024)/((60*FPS/46/2)*(60*FPS/46/2)/2)),
 	PLATFORM = [];
+
 	PLATFORM.push(createPlatform(WIDTH/2,HEIGHT/8,'std',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2-85*HEIGHT/703,HEIGHT/8+2*HEIGHT/703,'std',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2+85*HEIGHT/703,HEIGHT/8+4*HEIGHT/703,'std',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2+170*HEIGHT/703,HEIGHT/8-2*HEIGHT/703,'std',0,0));
 	PLATFORM.push(createPlatform(WIDTH/2+-170*HEIGHT/703,HEIGHT/8,'std',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*3,'std',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*5,'std',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*7,'std',0,0));
+	// PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*3,'std',0,0));
+	// PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*5,'std',0,0));
+	// PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*7,'std',0,0));
+	createRandomPlatform();
 }
 
 /*绘图函数*/
@@ -304,11 +314,29 @@ function drawAll()
 	*/
 }
 
+function getNextDistance() {
+	// SCORE越低，返回值越低
+	// 最大值是HEIGHT / 4
+	// 30000->均值达到m
+	// 初始: 0
+
+	var m = HEIGHT / 4;
+	var m_ = HEIGHT / 20;
+	var d = m * SCORE / 30000;
+	d += Math.random() * m_ * 0.8;
+
+	if (d > m) d = m;
+	if (d < m_) d = m_;
+	return d;
+}
+
 /*计算位置、移动等*/
 function findPlat()
 {
 	var x = DOODLE.x;
 	var y = DOODLE.y;
+	while (x < 0) x += WIDTH;
+	while (x > WIDTH) x -= WIDTH;
 	var maxy = -1000;
 	var maxyt = -1;
 	for (var i in PLATFORM)
@@ -321,6 +349,17 @@ function findPlat()
 	}
 	PLAT.y = maxy;
 	PLAT.id = maxy==-1000?0:PLATFORM[maxyt].id;
+}
+
+function createRandomPlatform() {
+	while (true) {
+		if (PLATFORM[PLATFORM.length - 1].y > HEIGHT * 2) return;
+		var y = PLATFORM[PLATFORM.length - 1].y + NEXT_DISTANCE;
+		var x = WIDTH/2+ranInt(-170,170)*HEIGHT/703;
+		var p = createPlatform(x, y, PLATFORM_TYPE[ranInt(0,5)],ran(80,260),0);
+		PLATFORM.push(p);
+		NEXT_DISTANCE = getNextDistance();
+	}
 }
 
 function createPlatform(x,y,type,speed,frame)
@@ -358,7 +397,7 @@ function hitPlatform(id)
 {
 	for (var p in PLATFORM)
 	{
-		if (PLATFORM[p].id==id)
+		if (PLATFORM[p].id==id) // TODO
 		{
 			with(PLATFORM[p])//'std','movex','movey','burn','hide','break'
 			{
@@ -401,9 +440,13 @@ function rollScreen(posy)
 	var u = DOODLE.y - posy;//所有元素都向下移动u个像素
 	DOODLE.y -= u;
 	TITLE_Y += u;
-	SCORE += u/(HEIGHT*3/8-90*HEIGHT / 1024)*180
-	if (random()<1/(SCORE/4000))
-		PLATFORM.push(createPlatform(WIDTH/2+ran(-229,229)*SIZE,HEIGHT,PLATFORM_TYPE[ranInt(0,5)],ran(80,260),0));
+	SCORE += u/(HEIGHT*3/8-90*HEIGHT / 1024)*180;
+
+	// if (random()<1/(SCORE/4000))
+	// 	PLATFORM.push(createPlatform(WIDTH/2+ran(-229,229)*SIZE,HEIGHT,PLATFORM_TYPE[ranInt(0,5)],ran(80,260),0));
+
+	createRandomPlatform();
+
 	for (var p in PLATFORM)
 	{
 		PLATFORM[p].y -= u;
@@ -419,18 +462,42 @@ function changeDoodlePosition()//决定使用endless sea小鱼的运动模型...
 	with(DOODLE)
 	{
 		var mx = MOUSEX - (SCREEN_WIDTH-WIDTH)/2;
+		if (mx > WIDTH * 2) mx = WIDTH * 2;
+		if (mx < -WIDTH) mx = -WIDTH;
+
+		var mx_ = mx;
+		// while (mx < 0) mx += WIDTH;
+		// while (mx > WIDTH) mx -= WIDTH;
 		var u1=6;//u1 u2是两个阻尼值
 		var u2=80;
 	//	if (mx<0) mx += x;
 	//	if (mx>WIDTH) mx += x - WIDTH;
-		ax = mx - x - vx/u1;
+		// mx: doodle追赶的目标
+		var ax1 = mx - x - vx / u1;
+		var ax2 = mx + WIDTH - x - vx / u1;
+		var ax3 = mx - WIDTH - x - vx / u1;
+		// var t1 = Math.abs(mx - x);
+		// var t2 = Math.abs(mx - x + WIDTH);
+		// var t3 = Math.abs(mx - x - WIDTH);
+		ax = ax1;
+		// if (t1 == Math.min(t1, t2, t3)) ax = ax1;
+		// if (t2 == Math.min(t1, t2, t3)) ax = ax2;
+		// if (t3 == Math.min(t1, t2, t3)) ax = ax3;
+		// if (mx_ >= x) {
+		// 	ax = (t1 > t2 ? ax2 : ax1);
+		// } else {
+		// 	ax = (t1 > t3 ? ax3 : ax1);
+		// }
 		vx += ax;
-		x += vx/u2;
+		if (vx > 700) vx = 700;
+		if (vx < -700) vx = -700;
+		// console.log(vx);
+		x += vx / u2;
 		//vx = (mx-WIDTH/2)/15*SIZE;
 		//x += vx;
 		
-		while (x<0) x += WIDTH;
-		while (x>WIDTH) x -= WIDTH;
+		// while (x<0) x += WIDTH;
+		// while (x>WIDTH) x -= WIDTH;
 	
 		vy += ay;
 		y += vy;
@@ -530,6 +597,15 @@ function addEvent()
 	{
 		DOODLE.status = DOODLE.vx>0?'r':'l';
 	});
+	document.addEventListener('keyup', function(e) {
+		switch (e.code) {
+			case 'KeyR':
+				restart(e.shiftKey);
+				break;
+			default:
+				console.log(e.code);
+		}
+	});
 }
 
 function addTimer()
@@ -546,6 +622,13 @@ function playSound(name)
 {
 	$('#'+name)[0].currentTime=0;
 	$('#'+name)[0].play();
+}
+
+function restart(changetheme) {
+	init(changetheme);
+	if (!changetheme) {
+		runNewGame();		
+	}
 }
 
 /*运行游戏*/
