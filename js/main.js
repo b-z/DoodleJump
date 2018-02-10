@@ -98,7 +98,7 @@ function init(changetheme)
 //	LOADING_IMAGE.src = 'img/loading.png';
 //	ctx.drawImage(LOADING_IMAGE,WIDTH/2-LOADING_IMAGE.width/2,HEIGHT/2-LOADING_IMAGE.height/2);
 	ctx.font = '20px sans-serif';
-	ctx.fillText('loading, please wait...',100,HEIGHT/2);
+	ctx.fillText(IMAGE_LOADED + '/' + 12 + ' loading, please wait...',100,HEIGHT/2);
 	loadSound();
 	IMAGE_LOADED = 0;
 	if (changetheme) changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
