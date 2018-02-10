@@ -97,8 +97,7 @@ function init(changetheme)
 	console.log('init', changetheme);
 //	LOADING_IMAGE.src = 'img/loading.png';
 //	ctx.drawImage(LOADING_IMAGE,WIDTH/2-LOADING_IMAGE.width/2,HEIGHT/2-LOADING_IMAGE.height/2);
-	ctx.font = '20px sans-serif';
-	ctx.fillText(IMAGE_LOADED + '/' + 12 + ' loading, please wait...',100,HEIGHT/2);
+	
 	loadSound();
 	IMAGE_LOADED = 0;
 	if (changetheme) changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
@@ -548,8 +547,21 @@ function changeTheme(theme)
 	}
 	var count = 12;
 	IMAGE_LOADED = 0;
+
+	ctx.save();
+	ctx.clearRect(0, 0, WIDTH, HEIGHT);
+	ctx.font = '20px sans-serif';
+	ctx.fillText(IMAGE_LOADED + '/' + 12 + ' loaded, please wait...',100,HEIGHT/2);
+	ctx.restore();
+
 	TITLE_IMAGE.onload=BACKGROUND_IMAGE.onload=SOURCE_IMAGE.onload=BOTTOM_IMAGE.onload=HEAD_IMAGE.onload=BULLET_IMAGE.onload=DOODLE_IMAGE.l.onload=DOODLE_IMAGE.ls.onload=DOODLE_IMAGE.u.onload=DOODLE_IMAGE.us.onload=DOODLE_IMAGE.r.onload=DOODLE_IMAGE.rs.onload=function(){
 		IMAGE_LOADED++;
+		ctx.save();
+		ctx.clearRect(0, 0, WIDTH, HEIGHT);
+		ctx.font = '20px sans-serif';
+		ctx.fillText(IMAGE_LOADED + '/' + 12 + ' loaded, please wait...',100,HEIGHT/2);
+		ctx.restore();
+
 		if (IMAGE_LOADED == count)
 			runNewGame();
 	}
