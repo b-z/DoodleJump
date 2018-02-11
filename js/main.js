@@ -104,6 +104,7 @@ var Key = {
 var PAUSING;
 var MOUSE_CONTROL = true;
 var RECORD = [];
+var RECORD_T = [];
 
 function init(changetheme, theme)
 {
@@ -145,7 +146,13 @@ function init(changetheme, theme)
 		fire: false
 	};
 
+	if (!window.localStorage.scores) {
+		window.localStorage.scores = "";
+		window.localStorage.times = "";
+	}
+
 	RECORD = window.localStorage.scores.split(" ").map(parseFloat);
+	RECORD_T = window.localStorage.times.split(" ").map(parseFloat);
 	$('canvas').css('cursor', 'none');
 
 	DOODLE.ay=-((HEIGHT*3/8-90*HEIGHT/1024)/((60*FPS/46/2)*(60*FPS/46/2)/2));
@@ -204,11 +211,20 @@ function drawCursor() {
 }
 
 function drawRecord() {
-	// RECORD.forEach(function(e) {
-	// 	// console.log(e);
-	// 	// var y = u/(HEIGHT*3/8-90*HEIGHT / 1024)*180;
-	// 	ctx.drawImage(SOURCE_IMAGE, 660, 458, 110, 10, WIDTH - 110 * SIZE, HEIGHT / 2 - 10 * HEIGHT / 703, 110*SIZE, 10*SIZE);
-	// });
+	RECORD.forEach(function(e, i) {
+		// console.log(e);
+	 	var u = e - SCORE;
+		var y = HEIGHT *7 / 8 - u*(HEIGHT*3/8-90*HEIGHT / 1024)/180;
+		if (y >= 0 && y <= HEIGHT) {
+			ctx.save();
+			ctx.drawImage(SOURCE_IMAGE, 660, 458, 110, 10, WIDTH - 110 * SIZE, y, 110*SIZE, 10*SIZE);
+			ctx.font = '10px sans-serif';
+			var t = (new Date(RECORD_T[i])).toLocaleString();
+			t = t.split(':')[0] + ':' + t.split(':')[1];
+			ctx.fillText(t, WIDTH - 110 * SIZE, y);
+			ctx.restore();
+		}
+	});
 }
 
 function drawPausing() {
@@ -222,6 +238,11 @@ function drawPausing() {
 function drawGameover() {
 	ctx.save();
 	ctx.drawImage(GAMEOVER_IMAGE, WIDTH / 4, HEIGHT- (DOODLE.y - HEIGHT / 3), WIDTH / 2, WIDTH / 2 / 431 * 161);
+	ctx.font = '18px sans-serif';
+	RECORD.sort(function(a,b){return a<b;});
+	var text = 'High score: ' + Math.max(SCORE, Math.round(RECORD[0]));
+	ctx.fillText(text, WIDTH / 2 - 80 * SIZE, HEIGHT - (DOODLE.y - HEIGHT * 0.6));
+	
 	ctx.restore();	
 }
 
@@ -321,6 +342,8 @@ function drawPlatForms()//1,117,2,32
 function drawOneBullet(p)
 {
 	ctx.drawImage(BULLET_IMAGE,0,0,22,22,p.x,HEIGHT-p.y-130*SIZE,22*SIZE,22*SIZE);
+	ctx.drawImage(BULLET_IMAGE,0,0,22,22,p.x+WIDTH,HEIGHT-p.y-130*SIZE,22*SIZE,22*SIZE);
+	ctx.drawImage(BULLET_IMAGE,0,0,22,22,p.x-WIDTH,HEIGHT-p.y-130*SIZE,22*SIZE,22*SIZE);
 }
 
 function drawBullets()
@@ -364,6 +387,10 @@ function drawAll()
 {
 	drawBackground();
 	drawPlatForms();
+	if (!DOODLE.died) {
+		drawRecord();		
+	}
+	
 	drawDoodle();
 	drawBullets();
 	if (DOODLE.died) {
@@ -373,7 +400,6 @@ function drawAll()
 	drawBottom();
 	drawHead();
 	drawScore();
-	drawRecord();
 	
 	
 	//以下测试用
@@ -577,10 +603,18 @@ function doodleDie()
 		DOODLE.died=true;
 		playSound('pada');
 		DEATH_CLOCK = 0;
-		if (!window.localStorage.scores) 
+		RECORD.sort().reverse();
+		if (!window.localStorage.scores) {
 			window.localStorage.scores = Math.round(SCORE);
-		else 
+			window.localStorage.times = (new Date()).getTime();
+		}
+		else {
+			for (var i = 0; i < RECORD.length; i++) {
+				if (Math.abs(SCORE - RECORD[i]) < 10) return;
+			}
 			window.localStorage.scores += " " + Math.round(SCORE);
+			window.localStorage.times += " " + (new Date()).getTime();
+		}
 	}
 }
 
