@@ -240,7 +240,9 @@ function drawGameover() {
 	ctx.drawImage(GAMEOVER_IMAGE, WIDTH / 4, HEIGHT- (DOODLE.y - HEIGHT / 3), WIDTH / 2, WIDTH / 2 / 431 * 161);
 	ctx.font = '18px sans-serif';
 	RECORD.sort(function(a,b){return a<b;});
-	var text = 'High score: ' + Math.max(Math.round(SCORE), RECORD[0]);
+	var h = Math.max(Math.round(SCORE), RECORD[0]);
+	if (h == NaN) h = Math.round(SCORE);
+	var text = 'High score: ' + h;
 	ctx.fillText(text, WIDTH / 2 - 80 * SIZE, HEIGHT - (DOODLE.y - HEIGHT * 0.6));
 	
 	ctx.restore();	
