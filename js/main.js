@@ -322,7 +322,7 @@ function getNextDistance() {
 	var m = HEIGHT / 4;
 	var m_ = HEIGHT / 20;
 	var d = m * SCORE / 30000;
-	d += Math.random() * m_ * 0.8;
+	d *= Math.random() * 1.5;
 
 	if (d > m) d = m;
 	if (d < m_) d = m_;
@@ -352,10 +352,43 @@ function findPlat()
 
 function createRandomPlatform() {
 	while (true) {
-		if (PLATFORM[PLATFORM.length - 1].y > HEIGHT * 2) return;
-		var y = PLATFORM[PLATFORM.length - 1].y + NEXT_DISTANCE;
+		var idx = PLATFORM.length - 1;
+		while (idx > 0 && PLATFORM[idx].type == 'break') idx--;
+		if (PLATFORM[idx].y > HEIGHT * 2) return;
+		var y = PLATFORM[idx].y + NEXT_DISTANCE;
 		var x = WIDTH/2+ranInt(-170,170)*HEIGHT/703;
-		var p = createPlatform(x, y, PLATFORM_TYPE[ranInt(0,5)],ran(80,260),0);
+		var r = Math.random();
+		var p;
+		var t = [ 
+			SCORE <= 20000 ? (0.6+(20000-SCORE)/20000*0.4):(12000/SCORE),
+			SCORE / 100000,
+			SCORE / 1000000,
+			Math.min(SCORE / 500000, 0.1),
+			Math.min(SCORE / 500000, 0.2),
+			0,
+		];
+		var sum = 0; 
+		for (var i = 0; i < t.length; i++) sum += t[i];
+		for (var i = 0; i < t.length; i++) t[i] /= sum;
+		for (var i = 1; i < t.length; i++) t[i] += t[i - 1];
+
+		if (r <= t[0]) {
+			p = createPlatform(x, y, PLATFORM_TYPE[0], 0, 0);
+		} else if (r <= t[1]) {
+			p = createPlatform(x, y, PLATFORM_TYPE[1], ran(80,200), 0);
+		} else if (r <= t[2]) {
+			p = createPlatform(x, y, PLATFORM_TYPE[2], ran(80,260), 0);
+		} else if (r <= t[3]) {
+			p = createPlatform(x, y, PLATFORM_TYPE[3], 0, 0);
+		} else if (r <= t[4]) {
+			p = createPlatform(x, y, PLATFORM_TYPE[4], 0, 0);			
+		}
+
+		if (r < 0.2 + Math.min(1, SCORE / 30000) * 0.2) {
+			PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703, y + Math.random() * HEIGHT / 4, 'break', ran(80,200), 0));
+		}
+ 
+		// var PLATFORM_TYPE = ['std','movex','movey','burn','hide','break'];
 		PLATFORM.push(p);
 		NEXT_DISTANCE = getNextDistance();
 	}
@@ -589,7 +622,7 @@ window.onresize = function()
 	$('body').html('');
 	$('body').prepend('<canvas id="canv" tabindex="0" style="position:absolute;left:'+(SCREEN_WIDTH-WIDTH)/2+'px;top:0px;" width='+WIDTH+'px height='+HEIGHT+'px>请换个浏览器。。</canvas>');
 	ctx=$('#canv')[0].getContext('2d');
-	init(false);
+	restart(false);
 }
 
 function addEvent()
