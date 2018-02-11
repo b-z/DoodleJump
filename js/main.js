@@ -64,6 +64,7 @@ var BULLET_IMAGE = new Image();
 var LOADING_IMAGE = new Image();
 var TITLE_IMAGE = new Image();
 var PAUSE_IMAGE = new Image();
+var GAMEOVER_IMAGE = new Image();
 var DOODLE_IMAGE = {					//doodle的图片，分为各个动作
 	l: new Image(),
 	ls: new Image(),
@@ -74,6 +75,7 @@ var DOODLE_IMAGE = {					//doodle的图片，分为各个动作
 };
 var DOODLE;
 var TITLE_Y;
+var GAMEOVER_Y;
 var PLATFORM = [];						//当前的platform的状态数组，内含多个对象，每个platform的属性包括位置、类型、帧(用于控制动画)
 var PLATFORM_ID;
 var NEXT_DISTANCE;
@@ -88,7 +90,8 @@ var CLOCK;								//全局计数器
 var FPS;								//帧率
 var SIZE;								//缩放比例 = HEIGHT / 1024，每个绘制对象的大小都要乘上这个
 var IMAGE_LOADED;
-var THEMES = ['bunny','doodlestein','ghost','ice','jungle','lik','ninja','snow','soccer','space','underwater'];
+var DEATH_CLOCK;
+var THEMES = ['lik','bunny','doodlestein','ghost','ice','jungle','ninja','snow','soccer','space','underwater'];
 										//各个主题的文件夹名
 var PLATFORM_TYPE = ['std','movex','movey','burn','hide','break'];
 var SOUND_NAME = ['jump','lomise','explodingplatform','explodingplatform2','pucanje','pucanje2','pada'];
@@ -100,15 +103,15 @@ var Key = {
 var PAUSING;
 var MOUSE_CONTROL = true;
 
-function init(changetheme)
+function init(changetheme, theme)
 {
-	console.log('init', changetheme);
+	// console.log('init', changetheme);
 //	LOADING_IMAGE.src = 'img/loading.png';
 //	ctx.drawImage(LOADING_IMAGE,WIDTH/2-LOADING_IMAGE.width/2,HEIGHT/2-LOADING_IMAGE.height/2);
 	
 	loadSound();
 	IMAGE_LOADED = 0;
-	if (changetheme) changeTheme(THEMES[ranInt(0,THEMES.length-1)]);
+	if (changetheme) changeTheme(THEMES[theme == undefined?ranInt(0,THEMES.length-1):theme]);
 	FPS = 60;
 	if (TIMER) clearInterval(TIMER);
 	TIMER = 0;
@@ -122,6 +125,7 @@ function init(changetheme)
 	MOUSEX = SCREEN_WIDTH/2;
 	SIZE = HEIGHT / 1024;
 	PAUSING = false;
+	DEATH_CLOCK = 0;
 	DOODLE = {							//doodle的状态，包括位置、速度、加速度、面部朝向、是否隐藏
 		x: WIDTH/2,
 		y: HEIGHT/2-90*HEIGHT / 1024,
@@ -141,14 +145,14 @@ function init(changetheme)
 	DOODLE.ay=-((HEIGHT*3/8-90*HEIGHT/1024)/((60*FPS/46/2)*(60*FPS/46/2)/2)),
 	PLATFORM = [];
 
-	PLATFORM.push(createPlatform(WIDTH/2,HEIGHT/8,'std',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2-85*HEIGHT/703,HEIGHT/8+2*HEIGHT/703,'std',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2+85*HEIGHT/703,HEIGHT/8+4*HEIGHT/703,'std',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2+170*HEIGHT/703,HEIGHT/8-2*HEIGHT/703,'std',0,0));
-	PLATFORM.push(createPlatform(WIDTH/2+-170*HEIGHT/703,HEIGHT/8,'std',0,0));
-	// PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*3,'std',0,0));
-	// PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*5,'std',0,0));
-	// PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*7,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2,HEIGHT/8+ranInt(-8,8)*HEIGHT/703,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-85*HEIGHT/703,HEIGHT/8+ranInt(-8,8)*HEIGHT/703,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2+85*HEIGHT/703,HEIGHT/8+ranInt(-8,8)*HEIGHT/703,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2+170*HEIGHT/703,HEIGHT/8+ranInt(-8,8)*HEIGHT/703,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2-170*HEIGHT/703,HEIGHT/8+ranInt(-8,8)*HEIGHT/703,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,-100)*HEIGHT/703,HEIGHT/8*3,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2+ranInt(100,170)*HEIGHT/703,HEIGHT/8*5,'std',0,0));
+	PLATFORM.push(createPlatform(WIDTH/2+ranInt(-170,170)*HEIGHT/703,HEIGHT/8*7,'std',0,0));
 	createRandomPlatform();
 }
 
@@ -168,6 +172,12 @@ function drawPausing() {
 	ctx.restore();
 }
 
+function drawGameover() {
+	ctx.save();
+	ctx.drawImage(GAMEOVER_IMAGE, WIDTH / 4, HEIGHT- (DOODLE.y - HEIGHT / 3), WIDTH / 2, WIDTH / 2 / 431 * 161);
+	ctx.restore();	
+}
+
 function drawDoodle()//脚下中心点为基准
 {
 	if (!DOODLE.hidden)
@@ -184,7 +194,7 @@ function drawDoodle()//脚下中心点为基准
 		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2+WIDTH, HEIGHT-DOODLE.y-120*SIZE+offset, 124*SIZE, 120*SIZE);
 		ctx.drawImage(DOODLE_IMAGE[DOODLE.status], DOODLE.x-124*SIZE/2-WIDTH, HEIGHT-DOODLE.y-120*SIZE+offset, 124*SIZE, 120*SIZE);
 	}
-	if (DOODLE.y < -30*SIZE)
+	if (DOODLE.y < -100*SIZE)
 	{
 		doodleDie();
 	}
@@ -304,9 +314,13 @@ function drawAll()
 	drawPlatForms();
 	drawDoodle();
 	drawBullets();
+	if (DOODLE.died) {
+		drawGameover();
+	}
 	drawBottom();
 	drawHead();
 	drawScore();
+	
 	
 	//以下测试用
 	/*
@@ -498,33 +512,61 @@ function doodleDie()
 	{
 		DOODLE.died=true;
 		playSound('pada');
+		DEATH_CLOCK = 0;
 	}
 }
 
 function rollScreen(posy)
 {
-	var u = DOODLE.y - posy;//所有元素都向下移动u个像素
-	DOODLE.y -= u;
-	TITLE_Y += u;
-	SCORE += u/(HEIGHT*3/8-90*HEIGHT / 1024)*180;
+	if (DOODLE.died) {
+		if (DOODLE.y > HEIGHT) return;
+		var u = DOODLE.vy;
+		var v = 15 - DEATH_CLOCK / FPS * 15;
+		if (v < 0) v = -v;
+		u -= v;
+		for (var p in PLATFORM) {
+			PLATFORM[p].y -= u;
+		}
+		for (var p in BULLET) {
+			BULLET[p].y -= u;
+		}
+		DOODLE.y -= u;
+		TITLE_Y += u;
 
-	// if (random()<1/(SCORE/4000))
-	// 	PLATFORM.push(createPlatform(WIDTH/2+ran(-229,229)*SIZE,HEIGHT,PLATFORM_TYPE[ranInt(0,5)],ran(80,260),0));
+		DEATH_CLOCK++;
+	} else {
+		var u = DOODLE.y - posy;//所有元素都向下移动u个像素
+		DOODLE.y -= u;
+		TITLE_Y += u;
+		SCORE += u/(HEIGHT*3/8-90*HEIGHT / 1024)*180;
 
-	createRandomPlatform();
+		// if (random()<1/(SCORE/4000))
+		// 	PLATFORM.push(createPlatform(WIDTH/2+ran(-229,229)*SIZE,HEIGHT,PLATFORM_TYPE[ranInt(0,5)],ran(80,260),0));
 
-	for (var p in PLATFORM)
-	{
-		PLATFORM[p].y -= u;
-	}
-	for (var p in BULLET)
-	{
-		BULLET[p].y -= u;
+		createRandomPlatform();
+
+		for (var p in PLATFORM)
+		{
+			PLATFORM[p].y -= u;
+		}
+		for (var p in BULLET)
+		{
+			BULLET[p].y -= u;
+		}
 	}
 }
 
 function changeDoodlePosition()//决定使用endless sea小鱼的运动模型...
 {
+	if (DOODLE.died) {
+		if (DOODLE.y <= HEIGHT) {
+			DOODLE.vy += DOODLE.ay;
+			DOODLE.y += DOODLE.vy;
+		}
+
+		rollScreen();
+		return;
+	}
 	with(DOODLE)
 	{
 		var mx;
@@ -621,6 +663,7 @@ function changeTheme(theme)
 	BULLET_IMAGE.src = 'img/bullet.png';
 	TITLE_IMAGE.src = 'img/doodlejump.png';
 	PAUSE_IMAGE.src = 'img/pause.png';
+	GAMEOVER_IMAGE.src = 'img/gameover.png';
 	with(DOODLE_IMAGE) {
 		l.src = sr + 'l.png';
 		ls.src = sr + 'ls.png';
@@ -629,7 +672,7 @@ function changeTheme(theme)
 		u.src = sr + 'u.png';
 		us.src = sr + 'us.png';
 	}
-	var count = 13;
+	var count = 14;
 	IMAGE_LOADED = 0;
 
 	ctx.save();
@@ -638,7 +681,7 @@ function changeTheme(theme)
 	ctx.fillText(IMAGE_LOADED + '/' + count + ' loaded, please wait...',100,HEIGHT/2);
 	ctx.restore();
 
-	PAUSE_IMAGE.onload=TITLE_IMAGE.onload=BACKGROUND_IMAGE.onload=SOURCE_IMAGE.onload=BOTTOM_IMAGE.onload=HEAD_IMAGE.onload=BULLET_IMAGE.onload=DOODLE_IMAGE.l.onload=DOODLE_IMAGE.ls.onload=DOODLE_IMAGE.u.onload=DOODLE_IMAGE.us.onload=DOODLE_IMAGE.r.onload=DOODLE_IMAGE.rs.onload=function(){
+	GAMEOVER_IMAGE.onload = PAUSE_IMAGE.onload=TITLE_IMAGE.onload=BACKGROUND_IMAGE.onload=SOURCE_IMAGE.onload=BOTTOM_IMAGE.onload=HEAD_IMAGE.onload=BULLET_IMAGE.onload=DOODLE_IMAGE.l.onload=DOODLE_IMAGE.ls.onload=DOODLE_IMAGE.u.onload=DOODLE_IMAGE.us.onload=DOODLE_IMAGE.r.onload=DOODLE_IMAGE.rs.onload=function(){
 		IMAGE_LOADED++;
 		ctx.save();
 		ctx.clearRect(0, 0, WIDTH, HEIGHT);
@@ -685,6 +728,12 @@ function addEvent()
 	});
 	document.addEventListener('mousedown',function(e)
 	{
+		if (DOODLE.died) {
+			return;
+		}
+		if (PAUSING) {
+			return;
+		}
 		// console.log(e);
 		if (e.button == 0) {
 			DOODLE.status = 'u';
@@ -694,10 +743,25 @@ function addEvent()
 	});
 	document.addEventListener('mouseup',function(e)
 	{
+		if (DOODLE.died) {
+			restart(false);
+			return;
+		}
+		if (PAUSING) {
+			pause();
+			MOUSE_CONTROL = true;
+			return;
+		}
 		DOODLE.status = DOODLE.vx>0?'r':'l';
 		MOUSE_CONTROL = true;
 	});
 	document.addEventListener('keydown', function(e) {
+		if (DOODLE.died) {
+			return;
+		}
+		if (PAUSING) {
+			return;
+		}
 		switch (e.code) {
 			case 'KeyA': case 'ArrowLeft':
 				Key.l = true;
@@ -719,6 +783,26 @@ function addEvent()
 		}
 	});
 	document.addEventListener('keyup', function(e) {
+		if (e.code == 'KeyR') {
+			restart(e.shiftKey);
+			return;
+		}
+		if (DOODLE.died && ['KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'].indexOf(e.code) < 0) {
+			restart(false);
+			return;
+		}
+		if (PAUSING) {
+			pause();
+			return;
+		}
+		if (e.code.indexOf('Digit') == 0) {
+			var d = parseInt(e.code.split('Digit')[1]);
+			if (d == 0) d = 10;
+			if (e.shiftKey) d = 11;
+			d--;
+			init(true, d);
+			return;
+		}
 		switch (e.code) {
 			case 'KeyA': case 'ArrowLeft':
 				Key.l = false;
@@ -734,7 +818,6 @@ function addEvent()
 				pause();
 				break;
 			case 'KeyR':
-				restart(e.shiftKey);
 				break;
 			default:
 				console.log(e.code);
@@ -744,6 +827,7 @@ function addEvent()
 
 function addTimer()
 {
+	if (TIMER) clearInterval(TIMER);
 	TIMER = setInterval(function(){
 		if (!PAUSING) {
 			CLOCK ++;
@@ -770,7 +854,6 @@ function restart(changetheme) {
 /*运行游戏*/
 function runNewGame()
 {
-	addEvent();
 	addTimer();
 }
 
@@ -780,3 +863,4 @@ function pause() {
 }
 
 init(true);
+addEvent();
