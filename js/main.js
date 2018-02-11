@@ -153,7 +153,7 @@ function init(changetheme, theme)
 
 	RECORD = window.localStorage.scores.split(" ").map(parseFloat);
 	RECORD_T = window.localStorage.times.split(" ").map(parseFloat);
-	$('canvas').css('cursor', 'none');
+	// $('canvas').css('cursor', 'none');
 
 	DOODLE.ay=-((HEIGHT*3/8-90*HEIGHT/1024)/((60*FPS/46/2)*(60*FPS/46/2)/2));
 	
@@ -179,33 +179,27 @@ function drawBackground()
 }
 
 function drawCursor() {
-	var size = 50 * HEIGHT / 703;
-	var xpos = MOUSEX - WIDTH / 2;
-	var ypos = MOUSEY;
+	var size = 80 * SIZE;
+	var xpos = MOUSEX - (SCREEN_WIDTH - WIDTH) / 2 - size / 2;
+	var ypos = MOUSEY - size / 2;
     ctx.save();
-    ctx.translate(xpos + size / 2, ypos + size / 2);
+    ctx.translate(xpos + size/2, ypos + size/2);
     ctx.rotate(-CLOCK * Math.PI / 180 * 1.5);
-    ctx.translate(-xpos - size / 2, -ypos - size / 2);
-    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
-    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.translate(-xpos - size/2, -ypos - size/2);
     ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
     ctx.restore();
     xpos += WIDTH;
     ctx.save();
-    ctx.translate(xpos + size / 2, ypos + size / 2);
+    ctx.translate(xpos + size/2, ypos + size/2);
     ctx.rotate(-CLOCK * Math.PI / 180 * 1.5);
-    ctx.translate(-xpos - size / 2, -ypos - size / 2);
-    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
-    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.translate(-xpos - size/2, -ypos - size/2);
     ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
     ctx.restore();
     xpos -= WIDTH * 2;
     ctx.save();
-    ctx.translate(xpos + size / 2, ypos + size / 2);
+    ctx.translate(xpos + size/2, ypos + size/2);
     ctx.rotate(-CLOCK * Math.PI / 180 * 1.5);
-    ctx.translate(-xpos - size / 2, -ypos - size / 2);
-    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
-    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.translate(-xpos - size/2, -ypos - size/2);
     ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
     ctx.restore();
 }
