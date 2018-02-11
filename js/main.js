@@ -65,6 +65,7 @@ var LOADING_IMAGE = new Image();
 var TITLE_IMAGE = new Image();
 var PAUSE_IMAGE = new Image();
 var GAMEOVER_IMAGE = new Image();
+var CURSOR_IMAGE = new Image();
 var DOODLE_IMAGE = {					//doodle的图片，分为各个动作
 	l: new Image(),
 	ls: new Image(),
@@ -102,6 +103,7 @@ var Key = {
 };
 var PAUSING;
 var MOUSE_CONTROL = true;
+var RECORD = [];
 
 function init(changetheme, theme)
 {
@@ -142,7 +144,12 @@ function init(changetheme, theme)
 		r: false,
 		fire: false
 	};
-	DOODLE.ay=-((HEIGHT*3/8-90*HEIGHT/1024)/((60*FPS/46/2)*(60*FPS/46/2)/2)),
+
+	RECORD = window.localStorage.scores.split(" ").map(parseFloat);
+	$('canvas').css('cursor', 'none');
+
+	DOODLE.ay=-((HEIGHT*3/8-90*HEIGHT/1024)/((60*FPS/46/2)*(60*FPS/46/2)/2));
+	
 	PLATFORM = [];
 
 	PLATFORM.push(createPlatform(WIDTH/2,HEIGHT/8+ranInt(-8,8)*HEIGHT/703,'std',0,0));
@@ -162,6 +169,46 @@ function drawBackground()
 {
 	ctx.drawImage(BACKGROUND_IMAGE, 0, 0, WIDTH, HEIGHT);
 	ctx.drawImage(TITLE_IMAGE, WIDTH/2-TITLE_IMAGE.width/2*SIZE,TITLE_Y+HEIGHT/3-TITLE_IMAGE.height/2*SIZE,412*SIZE*0.8,100*SIZE*0.8);
+}
+
+function drawCursor() {
+	var size = 50 * HEIGHT / 703;
+	var xpos = MOUSEX - WIDTH / 2;
+	var ypos = MOUSEY;
+    ctx.save();
+    ctx.translate(xpos + size / 2, ypos + size / 2);
+    ctx.rotate(-CLOCK * Math.PI / 180 * 1.5);
+    ctx.translate(-xpos - size / 2, -ypos - size / 2);
+    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.restore();
+    xpos += WIDTH;
+    ctx.save();
+    ctx.translate(xpos + size / 2, ypos + size / 2);
+    ctx.rotate(-CLOCK * Math.PI / 180 * 1.5);
+    ctx.translate(-xpos - size / 2, -ypos - size / 2);
+    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.restore();
+    xpos -= WIDTH * 2;
+    ctx.save();
+    ctx.translate(xpos + size / 2, ypos + size / 2);
+    ctx.rotate(-CLOCK * Math.PI / 180 * 1.5);
+    ctx.translate(-xpos - size / 2, -ypos - size / 2);
+    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.drawImage(CURSOR_IMAGE, xpos, ypos, size, size);
+    ctx.restore();
+}
+
+function drawRecord() {
+	// RECORD.forEach(function(e) {
+	// 	// console.log(e);
+	// 	// var y = u/(HEIGHT*3/8-90*HEIGHT / 1024)*180;
+	// 	ctx.drawImage(SOURCE_IMAGE, 660, 458, 110, 10, WIDTH - 110 * SIZE, HEIGHT / 2 - 10 * HEIGHT / 703, 110*SIZE, 10*SIZE);
+	// });
 }
 
 function drawPausing() {
@@ -248,7 +295,12 @@ function drawOnePlatForm(p)//上中心点为基准
 				y=-1000;
 			}
 		}
-		
+		if (spring == 1) {
+			ctx.drawImage(SOURCE_IMAGE, 376, 188, 71, 35, x - 71 * SIZE / 2, HEIGHT - y - 35 * SIZE, 71 * SIZE, 35 * SIZE);	
+		}
+		if (spring == 2) {
+			ctx.drawImage(SOURCE_IMAGE, 299, 188, 71, 35, x - 71 * SIZE / 2, HEIGHT - y - 35 * SIZE, 71 * SIZE, 35 * SIZE);	
+		}
 	}
 }
 
@@ -317,9 +369,11 @@ function drawAll()
 	if (DOODLE.died) {
 		drawGameover();
 	}
+	if (MOUSE_CONTROL) drawCursor();
 	drawBottom();
 	drawHead();
 	drawScore();
+	drawRecord();
 	
 	
 	//以下测试用
@@ -380,13 +434,15 @@ function findPlat()
 	for (var i in PLATFORM)
 	{
 		if (PLATFORM[i].t == 'break' && PLATFORM[i].f > 0) continue;
-		if (abs(x-PLATFORM[i].x)<60*HEIGHT/703&&PLATFORM[i].y<y+3&&PLATFORM[i].y>maxy)
+		var yi = PLATFORM[i].y;
+		if (PLATFORM[i].spring) yi += 15 * HEIGHT / 703;
+		if (abs(x-PLATFORM[i].x)<60*HEIGHT/703&&yi<y+3&&yi>maxy)
 		{
 			if (PLATFORM[i].t == 'break') {
-				maxy2=PLATFORM[i].y;
+				maxy2=yi;
 				maxyt2=i;
 			} else {
-				maxy=PLATFORM[i].y;
+				maxy=yi;
 				maxyt=i;				
 			}
 		}
@@ -445,7 +501,9 @@ function createRandomPlatform() {
 function createPlatform(x,y,type,speed,frame)
 {
 	PLATFORM_ID++;
-	return {id:PLATFORM_ID,x:x,y:y,t:type,speed:speed,f:frame};
+	var r = Math.random() < 0.05 ? (type == 'std' || type == 'movex' || type == 'movey') : 0;
+	if (r) r = 1;
+	return {id:PLATFORM_ID,x:x,y:y,t:type,speed:speed,f:frame,spring:r};
 }
 
 function createBullet(x,y)
@@ -463,12 +521,13 @@ function changeBulletPosition()
 	}
 }
 
-function doodleReflect(posy)
+function doodleReflect(posy, spring)
 {
 	with(DOODLE)
 	{
 		y=posy;
 		vy = sqrt((HEIGHT*3/8-90*HEIGHT/1024)*2*(-DOODLE.ay));//*(ran(0,1)<0.2?3:1)*(ran(0,1)<0.02?200:1));//*1.732;
+		if (spring) vy *= Math.sqrt(3);
 	//	console.log(vy);
 	}
 }
@@ -488,7 +547,12 @@ function hitPlatform(id)
 					f++;
 					return;
 				}
-				doodleReflect(y);
+				var yi = y;
+				if (spring) yi += 15 * HEIGHT / 703;
+				doodleReflect(yi, PLATFORM[p].spring);
+				if (PLATFORM[p].spring) {
+					PLATFORM[p].spring = 2;
+				}
 				playSound('jump');
 				if (t == 'hide')
 				{
@@ -513,6 +577,10 @@ function doodleDie()
 		DOODLE.died=true;
 		playSound('pada');
 		DEATH_CLOCK = 0;
+		if (!window.localStorage.scores) 
+			window.localStorage.scores = Math.round(SCORE);
+		else 
+			window.localStorage.scores += " " + Math.round(SCORE);
 	}
 }
 
@@ -664,6 +732,7 @@ function changeTheme(theme)
 	TITLE_IMAGE.src = 'img/doodlejump.png';
 	PAUSE_IMAGE.src = 'img/pause.png';
 	GAMEOVER_IMAGE.src = 'img/gameover.png';
+	CURSOR_IMAGE.src = 'img/cursor.png';
 	with(DOODLE_IMAGE) {
 		l.src = sr + 'l.png';
 		ls.src = sr + 'ls.png';
@@ -672,7 +741,7 @@ function changeTheme(theme)
 		u.src = sr + 'u.png';
 		us.src = sr + 'us.png';
 	}
-	var count = 14;
+	var count = 15;
 	IMAGE_LOADED = 0;
 
 	ctx.save();
@@ -681,7 +750,7 @@ function changeTheme(theme)
 	ctx.fillText(IMAGE_LOADED + '/' + count + ' loaded, please wait...',100,HEIGHT/2);
 	ctx.restore();
 
-	GAMEOVER_IMAGE.onload = PAUSE_IMAGE.onload=TITLE_IMAGE.onload=BACKGROUND_IMAGE.onload=SOURCE_IMAGE.onload=BOTTOM_IMAGE.onload=HEAD_IMAGE.onload=BULLET_IMAGE.onload=DOODLE_IMAGE.l.onload=DOODLE_IMAGE.ls.onload=DOODLE_IMAGE.u.onload=DOODLE_IMAGE.us.onload=DOODLE_IMAGE.r.onload=DOODLE_IMAGE.rs.onload=function(){
+	CURSOR_IMAGE.onload = GAMEOVER_IMAGE.onload = PAUSE_IMAGE.onload=TITLE_IMAGE.onload=BACKGROUND_IMAGE.onload=SOURCE_IMAGE.onload=BOTTOM_IMAGE.onload=HEAD_IMAGE.onload=BULLET_IMAGE.onload=DOODLE_IMAGE.l.onload=DOODLE_IMAGE.ls.onload=DOODLE_IMAGE.u.onload=DOODLE_IMAGE.us.onload=DOODLE_IMAGE.r.onload=DOODLE_IMAGE.rs.onload=function(){
 		IMAGE_LOADED++;
 		ctx.save();
 		ctx.clearRect(0, 0, WIDTH, HEIGHT);
