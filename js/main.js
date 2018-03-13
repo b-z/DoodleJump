@@ -851,8 +851,10 @@ function addEvent()
 			MOUSE_CONTROL = true;
 			return;
 		}
-		DOODLE.status = DOODLE.vx>0?'r':'l';
-		MOUSE_CONTROL = true;
+		if (e.button == 0) {
+			DOODLE.status = DOODLE.vx>0?'r':'l';
+			MOUSE_CONTROL = true;
+		}
 	});
 	document.addEventListener('keydown', function(e) {
 		if (DOODLE.died) {
